@@ -84,6 +84,7 @@ def read_in_data(filename, e_species):#basal_fname="../model_start_trial"):
     for j, ending in enumerate(endings):
         pattern = "%s?_%s" % (filename, ending)
         fnames = glob.glob(pattern)
+        print(fnames)
         all_data = []
         for z, fname in enumerate(fnames):
             f = open(fname)

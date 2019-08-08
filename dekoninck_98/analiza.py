@@ -178,6 +178,7 @@ def to_csv(times, concentrations, species, fname):
     data[:, 1:] = concentrations
 
     df = pd.DataFrame(data, columns=header)
+    print('save to:', fname)
     df.to_csv('%s.csv' % fname)
 
 
