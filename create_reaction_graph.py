@@ -2,16 +2,7 @@ import argparse
 
 from pyvis.network import Network
 import networkx as nx
-import matplotlib.pyplot as plt
 import xml.etree.ElementTree as ET
-
-LAYOUTS = {"kamada": nx.kamada_kawai_layout,
-           "circular": nx.circular_layout,
-           "bipartite": nx.bipartite_layout,
-           "planar": nx.planar_layout,
-           "shell": nx.shell_layout,
-           "spring": nx.spring_layout,
-           "spectral": nx.spectral_layout}
 
 
 def parse_rx(filename, remove_p=False):
@@ -52,7 +43,8 @@ def parse_rx(filename, remove_p=False):
     return species_kdiff, reactions
 
 
-def create_graph(species, reactions, reactants_left=None):
+def create_graph(reactions, reactants_left=None,
+                 height="100%", width="100%", bgcolor="#222222", font_color="white"):
     def is_add(name):
         if reactants_left is None:
             return True
@@ -63,20 +55,36 @@ def create_graph(species, reactions, reactants_left=None):
 
         return False
 
-    g = nx.MultiDiGraph()
+    g = Network(height=height, width=width, bgcolor=bgcolor,
+                font_color=font_color, directed=True)
+
     nodes = []
-    for s in species.keys():
-        if is_add(s):
-            nodes.append(s)
-
-    for i, n in enumerate(nodes):
-        g.add_node(n)
-
     for k, v in reactions.items():
         for r in v['reactant']:
             for p in v['product']:
-                if is_add(r) or is_add(p):
-                    g.add_edge(r, p)
+
+                if not is_add(r) and not is_add(p):
+                    continue
+
+                if r not in nodes:
+                    nodes.append(r)
+                    g.add_node(r)
+                if p not in nodes:
+                    nodes.append(p)
+                    g.add_node(p)
+                if k not in nodes:
+                    nodes.append(k)
+                    g.add_node(n_id=k, shape="dot", color="gray", label="R", size=10)
+
+                fr = float(v['forward'])
+                rr = float(v['reverse'])
+
+                if fr > rr:
+                    g.add_edge(k, p, arrowStrikethrough=True, value=fr, title="FOR:%s" % v['forward'])
+                    g.add_edge(r, k, arrowStrikethrough=True, value=rr, title="REV:%s" % v['reverse'])
+                else:
+                    g.add_edge(p, k, arrowStrikethrough=True, value=fr, title="FOR:%s" % v['forward'])
+                    g.add_edge(k, r, arrowStrikethrough=True, value=rr, title="REV:%s" % v['reverse'])
 
     return g
 
@@ -84,16 +92,14 @@ def create_graph(species, reactions, reactants_left=None):
 if __name__ == '__main__':
     ap = argparse.ArgumentParser()
     ap.add_argument("--reaction_file")
-    ap.add_argument("--layout", help="allowed: kamada, circular, bipartite, planar, shell, spring, spectral",
-                    default="shell")
     ap.add_argument("--reactants", nargs='+', help="If you want to only show some reactants", default=None)
     ap.add_argument("--removep", action='store_true', help="If you want to reduce number of particles on the graph, "
                                                            "by merging all phospho-particles (p..) to same particle.")
     args = ap.parse_args()
 
-    species_kdiff, reactions = parse_rx(filename=args.reaction_file, remove_p=args.removep)
-    graph = create_graph(species=species_kdiff, reactions=reactions, reactants_left=args.reactants)
+    _, reactions = parse_rx(filename=args.reaction_file, remove_p=args.removep)
+    graph = create_graph(reactions=reactions, reactants_left=args.reactants)
 
-    layout = LAYOUTS[args.layout](graph)
-    nx.draw(graph, layout, with_labels=True, arrowsize=20)
-    plt.show()
+    graph.show_buttons(filter_=['physics'])
+    graph.hrepulsion(node_distance=185)
+    graph.show('rx_graph.html')
