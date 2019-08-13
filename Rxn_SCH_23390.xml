@@ -25,10 +25,10 @@
   <Specie name="Ibuf" id="Ibuf" kdiff="1" kdiffunit="mu2/s" />
   <Specie name="ISOIbuf" id="ISOIbuf" kdiff="0" kdiffunit="mu2/s" />
 
-  <Specie name="ICI" id="ICI" kdiff="91.4" kdiffunit="mu2/s"/>
-  <Specie name="ICIOut" id="ICIOut" kdiff="10.5"
+  <Specie name="SCH23390" id="SCH23390" kdiff="91.4" kdiffunit="mu2/s"/>
+  <Specie name="SCH23390Out" id="SCH23390Out" kdiff="10.5"
 	  kdiffunit="mu2/s"/>
-  <Specie name="ICIbAR" id="ICIbAR" kdiff="0" kdiffunit="mu2/s"/>
+  <Specie name="SCH23390D1R" id="SCH23390D1R" kdiff="0" kdiffunit="mu2/s"/>
   
   <Specie name="Epac1" id="Epac1" kdiff="5.61" kdiffunit="mu2/s" />
   <Specie name="Epac1cAMP" id="Epac1cAMP" kdiff="5.62"
@@ -383,23 +383,23 @@ kdiffunit="mu2/s" />
   <reverseRate>0</reverseRate>
 </Reaction>
 
-<!-- ICI pump out-->
-<Reaction name = "ICI_pump" id="ICI_pump">
-	<Reactant specieID="ICI"/>
-	<Product specieID="ICIOut"/>
-	<forwardRate>5e-1</forwardRate>
-	<reverseRate>2e-5</reverseRate>
+<!-- SCH23390 pump out-->
+<Reaction name = "SCH23390_pump" id="SCH23390_pump">
+	<Reactant specieID="SCH23390"/>
+	<Product specieID="SCH23390Out"/>
+	<forwardRate>5e-5</forwardRate>
+	<reverseRate>2e-3</reverseRate>
 	<Q10>0.2</Q10>
 </Reaction>
 
-<!--ICI reactions 0.3 nM for ICI-118,551 Functional Characterization of the β-Adrenergic Receptor Subtypes Expressed by CA1 Pyramidal Cells in the Rat Hippocampus
+<!--SCH23390 reactions 0.3 nM for SCH23390-118,551 Functional Characterization of the β-Adrenergic Receptor Subtypes Expressed by CA1 Pyramidal Cells in the Rat Hippocampus
 
 Kristin L. Hillman, Van A. Doze1 and James E. Porter1  JPET August 2005 vol. 314 no. 2 561-567 -->
 
-<Reaction name = "ICIR_bind" id="ICIR_bind">
-	<Reactant specieID="ICI"/>
-	<Reactant specieID="bAR"/>
-	<Product specieID="ICIbAR"/>
+<Reaction name = "SCH23390R_bind" id="SCH23390R_bind">
+	<Reactant specieID="SCH23390"/>
+	<Reactant specieID="D1R"/>
+	<Product specieID="SCH23390D1R"/>
 	<forwardRate>1.27e-5</forwardRate>
 	<reverseRate>3.5e-6</reverseRate>
 	<Q10>0.2</Q10>
