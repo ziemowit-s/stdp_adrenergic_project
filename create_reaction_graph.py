@@ -148,5 +148,5 @@ if __name__ == '__main__':
     graph = create_graph(reactions=reactions, reactants=args.reactants)
 
     graph.show_buttons(filter_=['physics'])
-    graph.hrepulsion(node_distance=args.node_distance)
+    graph.hrepulsion(node_distance=args.node_distance, spring_strength=0.001)
     graph.show('rx_graph.html')
