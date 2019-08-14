@@ -1,11 +1,16 @@
 import argparse
 
 from pyvis.network import Network
-import networkx as nx
 import xml.etree.ElementTree as ET
 
 
-def parse_rx(filename, remove_p=False):
+def neurord_parse_reaction_file(filename, remove_p=False):
+    """
+
+    :param filename:
+    :param remove_p:
+    :return:
+    """
     doc = ET.parse(filename)
 
     species_kdiff = {}
@@ -43,63 +48,105 @@ def parse_rx(filename, remove_p=False):
     return species_kdiff, reactions
 
 
-def create_graph(reactions, reactants_left=None,
-                 height="100%", width="100%", bgcolor="#222222", font_color="white"):
-    def is_add(name):
-        if reactants_left is None:
-            return True
+def reaction_filter(reactions, reactants_left=None, percent_biggest_edges_to_left=None):
+    """
 
+    :param reactions:
+    :param reactants_left:
+    :param percent_biggest_edges_to_left:
+        the percent value of biggest edges to left: 0-100. Default is None, meaning - left edges of all nodes selected.
+    :return:
+    """
+
+    def is_add(name):
         for r in reactants_left:
             if r in name:
                 return True
-
         return False
 
-    g = Network(height=height, width=width, bgcolor=bgcolor,
-                font_color=font_color, directed=True)
+    if reactants_left:
+        filtered = []
+        for k, v in reactions.items():
+            for r in v['reactant']:
+                for p in v['product']:
+                    if is_add(r) or is_add(p):
+                        filtered.append((k, v))
+        reactions = dict(filtered)
+
+    if percent_biggest_edges_to_left:
+        p = percent_biggest_edges_to_left/100
+        sorted_dict = [x for x in sorted(reactions.items(), key=lambda x: -(x[1]['forward'] if x[1]['forward'] > x[1]['reverse'] else x[1]['reverse']))]
+        max_len = round(len(sorted_dict)*p)
+        reactions = dict(sorted_dict[:max_len])
+
+    return reactions
+
+
+def create_graph(reactions, reactants=None, height="100%", width="100%", bgcolor="#222222", font_color="white"):
+    g = Network(height=height, width=width, bgcolor=bgcolor, font_color=font_color, directed=True)
 
     nodes = []
     for k, v in reactions.items():
         for r in v['reactant']:
             for p in v['product']:
-
-                if not is_add(r) and not is_add(p):
-                    continue
-
-                if r not in nodes:
-                    nodes.append(r)
-                    g.add_node(r)
-                if p not in nodes:
-                    nodes.append(p)
-                    g.add_node(p)
-                if k not in nodes:
-                    nodes.append(k)
-                    g.add_node(n_id=k, shape="dot", color="gray", label="R", size=10)
-
                 fr = float(v['forward'])
                 rr = float(v['reverse'])
+                title = "%s/%s" % (fr, rr)
+
+                if r not in nodes:
+                    color = "#f5ce42" if r in reactants else "#80bfff"
+                    nodes.append(r)
+                    g.add_node(r, color=color)
+                if p not in nodes:
+                    color = "#f5ce42" if p in reactants else "#80bfff"
+                    nodes.append(p)
+                    g.add_node(p, color=color)
+                if k not in nodes:
+                    nodes.append(k)
+                    g.add_node(n_id=k, shape="diamond", color="#969696", label="R", size=10, title=k)
 
                 if fr > rr:
-                    g.add_edge(k, p, arrowStrikethrough=True, value=fr, title="FOR:%s" % v['forward'])
-                    g.add_edge(r, k, arrowStrikethrough=True, value=rr, title="REV:%s" % v['reverse'])
+                    color = "#91db7b"  # green - domination of forward reaction
+                    value = fr
                 else:
-                    g.add_edge(p, k, arrowStrikethrough=True, value=fr, title="FOR:%s" % v['forward'])
-                    g.add_edge(k, r, arrowStrikethrough=True, value=rr, title="REV:%s" % v['reverse'])
+                    color = "#ff9999"  # red - domination of reverse reaction
+                    value = rr
+
+                g.add_edge(r, k, color=color, value=value, title=title)
+                g.add_edge(k, p, color=color, value=value, title=title)
 
     return g
 
 
+description = """
+Creating reaction graph in the web browser.
+* square - represents molecule
+* diamond - represents reaction
+* arrow direction - represents the forward direction
+* arrow thickness - represents value of the reaction that represents its color
+
+Edge colors:
+* green - represents domination of the forward rate
+* red - represents domination of the reverse rate
+
+Square colors:
+* blue - regular particle
+* yellow - (if selected) key particles from reactants 
+"""
 if __name__ == '__main__':
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--reaction_file")
-    ap.add_argument("--reactants", nargs='+', help="If you want to only show some reactants", default=None)
-    ap.add_argument("--removep", action='store_true', help="If you want to reduce number of particles on the graph, "
-                                                           "by merging all phospho-particles (p..) to same particle.")
+    ap = argparse.ArgumentParser(description=description, formatter_class=argparse.RawTextHelpFormatter)
+    ap.add_argument("--reaction_file", help="Xml file containing reactions.", required=True)
+    ap.add_argument("--left_edges", help="Left only the percent value of the biggest edges from 0 to 100, default: None", default=None, type=float)
+    ap.add_argument("--node_distance", help="Distance between nodes on the graph, default: 140.", default=140)
+    ap.add_argument("--reactants", nargs='+', help="Reduce graph particles only to those denifed here, dfault: None, meaning - left edges of all nodes selected.", default=None)
+    ap.add_argument("--mergep", action='store_true', help="Merge phosphorylated particles as the same base particle.")
     args = ap.parse_args()
 
-    _, reactions = parse_rx(filename=args.reaction_file, remove_p=args.removep)
-    graph = create_graph(reactions=reactions, reactants_left=args.reactants)
+    species_kdiff, reactions = neurord_parse_reaction_file(filename=args.reaction_file, remove_p=args.mergep)
+
+    reactions = reaction_filter(reactions, reactants_left=args.reactants, percent_biggest_edges_to_left=args.left_edges)
+    graph = create_graph(reactions=reactions, reactants=args.reactants)
 
     graph.show_buttons(filter_=['physics'])
-    graph.hrepulsion(node_distance=185)
+    graph.hrepulsion(node_distance=args.node_distance)
     graph.show('rx_graph.html')
