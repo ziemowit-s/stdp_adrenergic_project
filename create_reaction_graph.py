@@ -82,6 +82,8 @@ def create_graph(reactions, reactants=None, height="100%", width="100%", bgcolor
     g = Network(height=height, width=width, bgcolor=bgcolor, font_color=font_color, directed=True)
 
     nodes = []
+    if reactants is None:
+        reactants = []
     for k, v in reactions.items():
         for r in v['reactant']:
             for p in v['product']:
