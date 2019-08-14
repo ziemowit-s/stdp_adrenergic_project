@@ -87,32 +87,34 @@ def create_graph(reactions, reactants=None, height="100%", width="100%", bgcolor
     for k, v in reactions.items():
         fr = float(v['forward'])
         rr = float(v['reverse'])
-        title = "%s/%s" % (fr, rr)
-        
+        afinity_rate = fr / rr if rr != 0 else fr
+        diffusion_rate = rr / fr if fr != 0 else rr
+        if afinity_rate > diffusion_rate:
+            edge_color = "#91db7b"  # green - domination of forward reaction
+            value = afinity_rate
+        else:
+            edge_color = "#ff9999"  # red - domination of reverse reaction
+            value = diffusion_rate
+
+        edge_thick = value
+        if edge_thick > 10000:
+            edge_thick = 10000
+
         for r in v['reactant']:
             for p in v['product']:
 
                 if r not in nodes:
-                    color = "#f5ce42" if r in reactants else "#80bfff"
                     nodes.append(r)
-                    g.add_node(r, color=color)
+                    g.add_node(r, color="#f5ce42" if r in reactants else "#80bfff")
                 if p not in nodes:
-                    color = "#f5ce42" if p in reactants else "#80bfff"
                     nodes.append(p)
-                    g.add_node(p, color=color)
+                    g.add_node(p, color="#f5ce42" if p in reactants else "#80bfff")
                 if k not in nodes:
                     nodes.append(k)
                     g.add_node(n_id=k, shape="diamond", color="#969696", label="R", size=10, title=k)
 
-                if fr > rr:
-                    color = "#91db7b"  # green - domination of forward reaction
-                    value = fr
-                else:
-                    color = "#ff9999"  # red - domination of reverse reaction
-                    value = rr
-
-                g.add_edge(r, k, color=color, value=value, title=title)
-                g.add_edge(k, p, color=color, value=value, title=title)
+                g.add_edge(r, k, color=edge_color, value=edge_thick, title=value)
+                g.add_edge(k, p, color=edge_color, value=edge_thick, title=value)
 
     return g
 
