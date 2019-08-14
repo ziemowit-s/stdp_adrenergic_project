@@ -85,11 +85,12 @@ def create_graph(reactions, reactants=None, height="100%", width="100%", bgcolor
     if reactants is None:
         reactants = []
     for k, v in reactions.items():
+        fr = float(v['forward'])
+        rr = float(v['reverse'])
+        title = "%s/%s" % (fr, rr)
+        
         for r in v['reactant']:
             for p in v['product']:
-                fr = float(v['forward'])
-                rr = float(v['reverse'])
-                title = "%s/%s" % (fr, rr)
 
                 if r not in nodes:
                     color = "#f5ce42" if r in reactants else "#80bfff"
