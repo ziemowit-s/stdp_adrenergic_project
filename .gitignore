@@ -13,3 +13,6 @@ PLoSCompBiol2017/*
 *zip
 .idea/
 reaction_visualizations/
+*zip
+*csv
+nohup.out

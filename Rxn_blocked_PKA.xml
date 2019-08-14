@@ -24,12 +24,6 @@
   <Specie name="ISOOut" id="ISOOut" kdiff="10." kdiffunit="mu2/s" />
   <Specie name="Ibuf" id="Ibuf" kdiff="1" kdiffunit="mu2/s" />
   <Specie name="ISOIbuf" id="ISOIbuf" kdiff="0" kdiffunit="mu2/s" />
-
-  <Specie name="SCH23390" id="SCH23390" kdiff="91.4" kdiffunit="mu2/s"/>
-  <Specie name="SCH23390Out" id="SCH23390Out" kdiff="10.5"
-	  kdiffunit="mu2/s"/>
-  <Specie name="SCH23390D1R" id="SCH23390D1R" kdiff="0" kdiffunit="mu2/s"/>
-  
   <Specie name="Epac1" id="Epac1" kdiff="5.61" kdiffunit="mu2/s" />
   <Specie name="Epac1cAMP" id="Epac1cAMP" kdiff="5.62"
 	  kdiffunit="mu2/s" />
@@ -382,29 +376,6 @@ kdiffunit="mu2/s" />
   <forwardRate>1e-06</forwardRate>
   <reverseRate>0</reverseRate>
 </Reaction>
-
-<!-- SCH23390 pump out-->
-<Reaction name = "SCH23390_pump" id="SCH23390_pump">
-	<Reactant specieID="SCH23390"/>
-	<Product specieID="SCH23390Out"/>
-	<forwardRate>5e-3</forwardRate>
-	<reverseRate>2e-5</reverseRate>
-	<Q10>0.2</Q10>
-</Reaction>
-
-<!--SCH23390 reactions 0.3 nM for SCH23390-118,551 Functional Characterization of the β-Adrenergic Receptor Subtypes Expressed by CA1 Pyramidal Cells in the Rat Hippocampus
-
-Kristin L. Hillman, Van A. Doze1 and James E. Porter1  JPET August 2005 vol. 314 no. 2 561-567 -->
-
-<Reaction name = "SCH23390R_bind" id="SCH23390R_bind">
-	<Reactant specieID="SCH23390"/>
-	<Reactant specieID="D1R"/>
-	<Product specieID="SCH23390D1R"/>
-	<forwardRate>1.27e-5</forwardRate>
-	<reverseRate>3.5e-6</reverseRate>
-	<Q10>0.2</Q10>
-    </Reaction>
-
 <!-- 1) ISO + bAR
          <-> ISObAR    -->
 <Reaction name="ISObAR_bind" id="ISObAR_bind">
@@ -536,8 +507,8 @@ id="DaD1RGs-DaD1R+GsaGTP+Gbg_id">
   <Reactant specieID="ISObAR" />
   <Reactant specieID="PKAc" />
   <Product specieID="PKAcISObAR" />
-  <forwardRate>0.008e-4</forwardRate>
-  <reverseRate>44.8e-04</reverseRate>
+  <forwardRate>0</forwardRate>
+  <reverseRate>0</reverseRate>
   <Q10>0.2</Q10>
 </Reaction>
 <!-- 5d1) PKAcISObAR -> pISObAR + PKAc -->
@@ -545,7 +516,7 @@ id="DaD1RGs-DaD1R+GsaGTP+Gbg_id">
   <Reactant specieID="PKAcISObAR" />
   <Product specieID="pISObAR" />
   <Product specieID="PKAc" />
-  <forwardRate>1.00e-03</forwardRate>
+  <forwardRate>0</forwardRate>
   <reverseRate>0</reverseRate>
   <Q10>0.2</Q10>
 </Reaction>
@@ -554,8 +525,8 @@ id="DaD1RGs-DaD1R+GsaGTP+Gbg_id">
   <Reactant specieID="pISObAR" />
   <Reactant specieID="PKAc" />
   <Product specieID="PKAcpISObAR" />
-  <forwardRate>0.008e-04</forwardRate>
-  <reverseRate>44.8e-04</reverseRate>
+  <forwardRate>0</forwardRate>
+  <reverseRate>0</reverseRate>
   <Q10>0.2</Q10>
 </Reaction>
 <!-- 5d2) PKAcpISObAR -> ppISObAR + PKAc -->
@@ -563,7 +534,7 @@ id="DaD1RGs-DaD1R+GsaGTP+Gbg_id">
   <Reactant specieID="PKAcpISObAR" />
   <Product specieID="ppISObAR" />
   <Product specieID="PKAc" />
-  <forwardRate>1.00e-03</forwardRate>
+  <forwardRate>0</forwardRate>
   <reverseRate>0</reverseRate>
   <Q10>0.2</Q10>
 </Reaction>
@@ -572,8 +543,8 @@ id="DaD1RGs-DaD1R+GsaGTP+Gbg_id">
   <Reactant specieID="ppISObAR" />
   <Reactant specieID="PKAc" />
   <Product specieID="PKAcppISObAR" />
-  <forwardRate>0.01712e-03</forwardRate>
-  <reverseRate>44.8e-04</reverseRate>
+  <forwardRate>0</forwardRate>
+  <reverseRate>0</reverseRate>
   <Q10>0.2</Q10>
 </Reaction>
 <!-- 5d3) PKAcppISObAR -> pppISObAR + PKAc -->
@@ -581,7 +552,7 @@ id="DaD1RGs-DaD1R+GsaGTP+Gbg_id">
   <Reactant specieID="PKAcppISObAR" />
   <Product specieID="pppISObAR" />
   <Product specieID="PKAc" />
-  <forwardRate>1.00e-03</forwardRate>
+  <forwardRate>0</forwardRate>
   <reverseRate>0</reverseRate>
   <Q10>0.2</Q10>
 </Reaction>
@@ -590,8 +561,8 @@ id="DaD1RGs-DaD1R+GsaGTP+Gbg_id">
   <Reactant specieID="pppISObAR" />
   <Reactant specieID="PKAc" />
   <Product specieID="PKAcpppISObAR" />
-  <forwardRate>1.712e-03</forwardRate>
-  <reverseRate>44.8e-04</reverseRate>
+  <forwardRate>0</forwardRate>
+  <reverseRate>0</reverseRate>
   <Q10>0.2</Q10>
 </Reaction>
 <!-- 5d4) PKAcpppISObAR -> ppppISObAR + PKAc -->
@@ -599,7 +570,7 @@ id="DaD1RGs-DaD1R+GsaGTP+Gbg_id">
   <Reactant specieID="PKAcpppISObAR" />
   <Product specieID="ppppISObAR" />
   <Product specieID="PKAc" />
-  <forwardRate>1.00e-03</forwardRate>
+  <forwardRate>0</forwardRate>
   <reverseRate>0</reverseRate>
   <Q10>0.2</Q10>
 </Reaction>
@@ -659,8 +630,8 @@ id="DaD1RGs-DaD1R+GsaGTP+Gbg_id">
   <Reactant specieID="bAR" />
   <Reactant specieID="PKAc" />
   <Product specieID="PKAcbAR" />
-  <forwardRate>0.0004e-04</forwardRate>
-  <reverseRate>44.8e-04</reverseRate>
+  <forwardRate>0</forwardRate>
+  <reverseRate>0</reverseRate>
   <Q10>0.2</Q10>
 </Reaction>
 <!-- 5ad1) PKAcbAR -> pbAR + PKAc -->
@@ -668,7 +639,7 @@ id="DaD1RGs-DaD1R+GsaGTP+Gbg_id">
   <Reactant specieID="PKAcbAR" />
   <Product specieID="pbAR" />
   <Product specieID="PKAc" />
-  <forwardRate>1.00e-03</forwardRate>
+  <forwardRate>0</forwardRate>
   <reverseRate>0</reverseRate>
   <Q10>0.2</Q10>
 </Reaction>
@@ -677,8 +648,8 @@ id="DaD1RGs-DaD1R+GsaGTP+Gbg_id">
   <Reactant specieID="pbAR" />
   <Reactant specieID="PKAc" />
   <Product specieID="PKAcpbAR" />
-  <forwardRate>0.004e-04</forwardRate>
-  <reverseRate>44.8e-04</reverseRate>
+  <forwardRate>0</forwardRate>
+  <reverseRate>0</reverseRate>
   <Q10>0.2</Q10>
 </Reaction>
 <!-- 5d2) PKAcpbAR -> ppbAR + PKAc -->
@@ -686,7 +657,7 @@ id="DaD1RGs-DaD1R+GsaGTP+Gbg_id">
   <Reactant specieID="PKAcpbAR" />
   <Product specieID="ppbAR" />
   <Product specieID="PKAc" />
-  <forwardRate>1.00e-03</forwardRate>
+  <forwardRate>0</forwardRate>
   <reverseRate>0</reverseRate>
   <Q10>0.2</Q10>
 </Reaction>
@@ -695,8 +666,8 @@ id="DaD1RGs-DaD1R+GsaGTP+Gbg_id">
   <Reactant specieID="ppbAR" />
   <Reactant specieID="PKAc" />
   <Product specieID="PKAcppbAR" />
-  <forwardRate>0.004e-03</forwardRate>
-  <reverseRate>44.8e-04</reverseRate>
+  <forwardRate>0</forwardRate>
+  <reverseRate>0</reverseRate>
   <Q10>0.2</Q10>
 </Reaction>
 <!-- 5ad3) PKAcppbAR -> pppbAR + PKAc -->
@@ -704,7 +675,7 @@ id="DaD1RGs-DaD1R+GsaGTP+Gbg_id">
   <Reactant specieID="PKAcppbAR" />
   <Product specieID="pppbAR" />
   <Product specieID="PKAc" />
-  <forwardRate>1.00e-03</forwardRate>
+  <forwardRate>0</forwardRate>
   <reverseRate>0</reverseRate>
   <Q10>0.2</Q10>
 </Reaction>
@@ -713,8 +684,8 @@ id="DaD1RGs-DaD1R+GsaGTP+Gbg_id">
   <Reactant specieID="pppbAR" />
   <Reactant specieID="PKAc" />
   <Product specieID="PKAcpppbAR" />
-  <forwardRate>0.4e-03</forwardRate>
-  <reverseRate>44.8e-04</reverseRate>
+  <forwardRate>0</forwardRate>
+  <reverseRate>0</reverseRate>
   <Q10>0.2</Q10>
 </Reaction>
 <!-- 5ad4) PKAcpppISObAR -> ppppISObAR + PKAc -->
@@ -722,7 +693,7 @@ id="DaD1RGs-DaD1R+GsaGTP+Gbg_id">
   <Reactant specieID="PKAcpppbAR" />
   <Product specieID="ppppbAR" />
   <Product specieID="PKAc" />
-  <forwardRate>1.00e-03</forwardRate>
+  <forwardRate>0</forwardRate>
   <reverseRate>0</reverseRate>
   <Q10>0.2</Q10>
 </Reaction>
@@ -1236,8 +1207,8 @@ id="AC1GaiGTPCaMCa4ATP_diss">
   <Reactant specieID="I1" />
   <Reactant specieID="PKAc" />
   <Product specieID="I1PKAc" />
-  <forwardRate>0.0014e-3</forwardRate>
-  <reverseRate>0.0056</reverseRate>
+  <forwardRate>0</forwardRate>
+  <reverseRate>0</reverseRate>
   <Q10>0.2</Q10>
 </Reaction>
 <!--2) I1PKAc -> Ip35 + PKAc: default kb=0 -->
@@ -1245,7 +1216,7 @@ id="AC1GaiGTPCaMCa4ATP_diss">
   <Reactant specieID="I1PKAc" />
   <Product specieID="Ip35" />
   <Product specieID="PKAc" />
-  <forwardRate>1.4e-3</forwardRate>
+  <forwardRate>0</forwardRate>
   <reverseRate>0</reverseRate>
   <Q10>0.2</Q10>
 </Reaction>
@@ -1307,8 +1278,8 @@ id="AC1GaiGTPCaMCa4ATP_diss">
   <Reactant specieID="NMDAR" />
   <Reactant specieID="PKAc" />
   <Product specieID="PKAcNMDAR" />
-  <forwardRate>0.0242e-3</forwardRate>
-  <reverseRate>720e-3</reverseRate>
+  <forwardRate>0</forwardRate>
+  <reverseRate>0</reverseRate>
   <Q10>0.2</Q10>
 </Reaction>
 
@@ -1317,7 +1288,7 @@ id="AC1GaiGTPCaMCa4ATP_diss">
   <Reactant specieID="PKAcNMDAR" />
   <Product specieID="pNMDAR" />
   <Product specieID="PKAc" />
-  <forwardRate>6.e-3</forwardRate>
+  <forwardRate>0</forwardRate>
   <Q10>0.2</Q10>
 </Reaction>
 
@@ -1370,8 +1341,8 @@ id="AC1GaiGTPCaMCa4ATP_diss">
   <Reactant specieID="GluR1" />
   <Reactant specieID="PKAc" />
   <Product specieID="GluR1_PKAc" />
-  <forwardRate>0.00009e-3</forwardRate>
-  <reverseRate>0.72e-3</reverseRate>
+  <forwardRate>0</forwardRate>
+  <reverseRate>0</reverseRate>
   <Q10>0.2</Q10>
 </Reaction>
 <!-- GluR1_PKAc -> GluR1_S845 + PKAc -->
@@ -1379,7 +1350,7 @@ id="AC1GaiGTPCaMCa4ATP_diss">
   <Reactant specieID="GluR1_PKAc" />
   <Product specieID="GluR1_S845" />
   <Product specieID="PKAc" />
-  <forwardRate>6.e-3</forwardRate>
+  <forwardRate>0</forwardRate>
   <Q10>0.2</Q10>
 </Reaction>
 
@@ -1618,8 +1589,8 @@ id="GluR1_S845_CKpCaM_diss">
   <Reactant specieID="GluR1_S831" />
   <Reactant specieID="PKAc" />
   <Product specieID="GluR1_S831_PKAc" />
-  <forwardRate>0.00009e-3</forwardRate>
-  <reverseRate>0.72e-3</reverseRate>
+  <forwardRate>0</forwardRate>
+  <reverseRate>0</reverseRate>
   <Q10>0.2</Q10>
 </Reaction>
 <!-- GluR1_PKAc -> GluR1_S845 + PKAc -->
@@ -1627,7 +1598,7 @@ id="GluR1_S845_CKpCaM_diss">
   <Reactant specieID="GluR1_S831_PKAc" />
   <Product specieID="GluR1_S845_S831" />
   <Product specieID="PKAc" />
-  <forwardRate>6.e-3</forwardRate>
+  <forwardRate>0</forwardRate>
   <Q10>0.2</Q10>
 </Reaction>
 <!--S845_S567-->
@@ -1691,8 +1662,8 @@ id="GluR1_S845_CKpCaM_diss2">
   <Reactant specieID="GluR1_S567" />
   <Reactant specieID="PKAc" />
   <Product specieID="GluR1_S567_PKAc" />
-  <forwardRate>0.00009e-3</forwardRate>
-  <reverseRate>0.72e-3</reverseRate>
+  <forwardRate>0</forwardRate>
+  <reverseRate>0</reverseRate>
   <Q10>0.2</Q10>
 </Reaction>
 <!-- GluR1_PKAc -> GluR1_S845 + PKAc -->
@@ -1700,7 +1671,7 @@ id="GluR1_S845_CKpCaM_diss2">
   <Reactant specieID="GluR1_S567_PKAc" />
   <Product specieID="GluR1_S845_S567" />
   <Product specieID="PKAc" />
-  <forwardRate>6.e-3</forwardRate>
+  <forwardRate>0</forwardRate>
   <Q10>0.2</Q10>
 </Reaction>
 
@@ -1895,8 +1866,8 @@ id="GluR1_S845_S567_PP1_diss2">
   <Reactant specieID="PKAc" />
   <Reactant specieID="PDE4" />
   <Product specieID="PKAcPDE4" />
-  <forwardRate>4.28e-7</forwardRate>
-  <reverseRate>0.00056</reverseRate>
+  <forwardRate>0</forwardRate>
+  <reverseRate>0</reverseRate>
   <Q10>0.2</Q10>
 </Reaction>
 <!-- 10)  PKAcPDE4 -> PKAc + pPDE4 -->
@@ -1904,7 +1875,7 @@ id="GluR1_S845_S567_PP1_diss2">
   <Reactant specieID="PKAcPDE4" />
   <Product specieID="pPDE4" />
   <Product specieID="PKAc" />
-  <forwardRate>0.000125</forwardRate>
+  <forwardRate>0</forwardRate>
   <reverseRate>0</reverseRate>
   <Q10>0.2</Q10>
 </Reaction>
@@ -1941,8 +1912,8 @@ id="GluR1_S845_S567_PP1_diss2">
   <Reactant specieID="PDE4cAMP" />
   <Reactant specieID="PKAc" />
   <Product specieID="PKAc_PDE4_cAMP" />
-  <forwardRate>4.280e-7</forwardRate>
-  <reverseRate>0.00056</reverseRate>
+  <forwardRate>0</forwardRate>
+  <reverseRate>0</reverseRate>
   <Q10>0.2</Q10>
 </Reaction>
 <!-- 22)  PKAc_PDE4_cAMP -> pPDE4cAMP + PKAc -->
@@ -1950,7 +1921,7 @@ id="GluR1_S845_S567_PP1_diss2">
   <Reactant specieID="PKAc_PDE4_cAMP" />
   <Product specieID="pPDE4cAMP" />
   <Product specieID="PKAc" />
-  <forwardRate>0.000125</forwardRate>
+  <forwardRate>0</forwardRate>
   <reverseRate>0</reverseRate>
   <Q10>0.2</Q10>
 </Reaction>
