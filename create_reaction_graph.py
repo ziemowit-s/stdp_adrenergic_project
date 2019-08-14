@@ -1,4 +1,6 @@
 import argparse
+import os
+from os import mkdir
 
 from pyvis.network import Network
 import xml.etree.ElementTree as ET
@@ -35,14 +37,10 @@ def neurord_parse_reaction_file(filename, remove_p=False):
 
         for reactant in reaction.findall("Reactant"):
             name = reactant.attrib['specieID']
-            if remove_p:
-                name = name.replace('p', '')
             r['reactant'].append(name)
 
         for product in reaction.findall("Product"):
             name = product.attrib['specieID']
-            if remove_p:
-                name = name.replace('p', '')
             r['product'].append(name)
 
     return species_kdiff, reactions
@@ -136,17 +134,20 @@ Square colors:
 if __name__ == '__main__':
     ap = argparse.ArgumentParser(description=description, formatter_class=argparse.RawTextHelpFormatter)
     ap.add_argument("--reaction_file", help="Xml file containing reactions.", required=True)
-    ap.add_argument("--left_edges", help="Left only the percent value of the biggest edges from 0 to 100, default: None", default=None, type=float)
+    ap.add_argument("--result_folder", help="Path to folder where to put HTML result files, default: reaction_visualizations/", default='reaction_visualizations')
+    ap.add_argument("--left_edges", help="Left only the percent value of the biggest edges from 0 to 100, default: 100", default=100, type=float)
     ap.add_argument("--node_distance", help="Distance between nodes on the graph, default: 140.", default=140)
     ap.add_argument("--reactants", nargs='+', help="Reduce graph particles only to those denifed here, dfault: None, meaning - left edges of all nodes selected.", default=None)
-    ap.add_argument("--mergep", action='store_true', help="Merge phosphorylated particles as the same base particle.")
     args = ap.parse_args()
 
-    species_kdiff, reactions = neurord_parse_reaction_file(filename=args.reaction_file, remove_p=args.mergep)
+    species_kdiff, reactions = neurord_parse_reaction_file(filename=args.reaction_file)
 
     reactions = reaction_filter(reactions, reactants_left=args.reactants, percent_biggest_edges_to_left=args.left_edges)
     graph = create_graph(reactions=reactions, reactants=args.reactants)
 
     graph.show_buttons(filter_=['physics'])
     graph.hrepulsion(node_distance=args.node_distance, spring_strength=0.001)
-    graph.show('rx_graph.html')
+
+    name = '_'.join(args.reactants) if args.reactants else 'ALL_REACTIONS'
+    os.makedirs(args.result_folder, exist_ok=True)
+    graph.show('%s/%s_%s_percent.html' % (args.result_folder, name, args.left_edges))
