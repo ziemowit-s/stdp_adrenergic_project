@@ -1,7 +1,5 @@
-import argparse
 import os
-from os import mkdir
-
+import argparse
 from pyvis.network import Network
 import xml.etree.ElementTree as ET
 
