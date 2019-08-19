@@ -2,7 +2,7 @@ import os
 import numpy as np
 
 
-def get_data(folder, prefix, morpho):
+def get_data(folder, prefix, morpho, no_time=False):
     """
 
     :param folder:
@@ -11,10 +11,12 @@ def get_data(folder, prefix, morpho):
          model prefix (eg. model_start_..)
     :param morpho:
         morphology name (eg. head, neck, PSD)
+    :param no_time:
+        remove time column. Default False
     :return:
-        tuple of header names and numpy array of results
+        tuple of header names and numpy array of results (np array of particles, values, trials)
     """
-    result = []
+    data = []
     header = None
     for file in os.listdir(folder):
         if file.startswith(prefix) and file.endswith('%s.txt' % morpho):
@@ -22,5 +24,10 @@ def get_data(folder, prefix, morpho):
             d = np.loadtxt(path, skiprows=1)
             with open(path) as f:
                 header = f.readline().split()
-            result.append(d)
-    return header, np.array(result)
+            data.append(d)
+    data = np.array(data).T
+
+    if no_time:
+        header = header[1:]
+        data = data[1:]
+    return header, data
