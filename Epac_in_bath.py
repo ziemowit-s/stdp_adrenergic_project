@@ -3,33 +3,50 @@ import glob
 import numpy as np
 import matplotlib.pyplot as plt
 labels = ['trial 0', 'trial 1', 'trial 2', 'trial 3']
-stim_time = 50000
-specie_name = "Epac1cAMP"
-file_list_DA = glob.glob("cAMP_validation/*DA_bath*total.txt")
-file_list_ISO = glob.glob("cAMP_validation/*ISO_bath*total.txt")
+
+parser = argparse.ArgumentParser(description='Make average specie concentration plots')
+
+parser.add_argument('files', nargs='+', help='Conc filenamses')
+parser.add_argument('--species', dest="species", default='Epac1cAMP',
+                    help='Specie list, default Epac1cAMP')
+
+def read_in_species(species):
+    old_species = species.split(',')
+    new_species = []
+    for specie in old_species:
+        new_species.append(specie.strip())
+    return new_species
 
 if __name__ == '__main__':
-    for j, file_list in enumerate([file_list_DA, file_list_ISO]):
-        
-        data = []
-        times = []
-        fig = plt.figure()
-        ax = fig.add_subplot(1, 1, 1)
-        for i, fname in enumerate(file_list):
-            ff = open(fname)
-            header = ff.readline().split(' ')
-            temp_data = np.loadtxt(ff)
-            times.append(temp_data[:, header.index('time')])
-            data.append(temp_data[:, header.index(specie_name)])
-                 
-        data_len = max([len(d) for d in data])
-        averaged_data = np.zeros((data_len, 1))
-        max_time = np.concatenate(times).max()
-        dt = times[0][1]-times[0][0]
-        averaged_time = np.linspace(0, max_time, data_len)
-        mean = []
-        for dat in data:
-            mean.append(dat[int(100000/dt):int(300000/dt)].mean())
+    args = parser.parse_args()
+    species = read_in_species(args.species)
+    data = []
+    times = []
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1)
+    basal = []
+    basal_fnames = glob.glob("model_start_trial*txt")
+    for fname in args.files:
+        print(fname)
+        try:
+            f = open(fname)
+        except IOError:
+            print("Could not find %s" % fname)
+        header = f.readline().split()
+        temp_data = np.loadtxt(f)
+        times.append(temp_data[:, header.index('time')])
+        data.append(temp_data[:, header.index(specie_name)])
+
+
+
+    data_len = max([len(d) for d in data])
+    averaged_data = np.zeros((data_len, 1))
+    max_time = np.concatenate(times).max()
+    dt = times[0][1]-times[0][0]
+    averaged_time = np.linspace(0, max_time, data_len)
+    mean = []
+    for dat in data:
+        mean.append(dat[:int(300000/dt)].mean())
         for i, d in enumerate(data):
             averaged_data[:len(d), 0] += d
             ax.plot(times[i], (d-mean[i])/mean[i], label=labels[i])

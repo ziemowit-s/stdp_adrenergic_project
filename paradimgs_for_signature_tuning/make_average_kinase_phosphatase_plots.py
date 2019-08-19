@@ -150,6 +150,8 @@ if __name__ == "__main__":
                         ax1[j][k].plot(average_traces[:, 0], trace,
                                        color=colors[key])
                 elif spec in receptors and ending=="spine.txt":
+                    if spec == "S567":
+                        trace = trace/average_traces[:, k]
                     new_k = k - len(evaluated_species)
                     if new_k == 0:
                         ax2[new_k//2][new_k%2].plot(average_traces[:, 0], trace,
