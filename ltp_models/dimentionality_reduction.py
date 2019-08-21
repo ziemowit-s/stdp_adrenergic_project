@@ -1,12 +1,40 @@
 import argparse
-
 import numpy as np
-from sklearn.decomposition import PCA, NMF
+import matplotlib.pyplot as plt
+
+from sklearn.decomposition import PCA
 from sklearn.preprocessing import MinMaxScaler
 
 # idx = header.index("Ca")
 # d[:, idx]
 from ltp_models.utils import get_data
+
+
+def exclude(data, header, molecules):
+    """
+    :param data:
+    :param header:
+    :param molecules:
+    :return:
+        tuple(data, header) after removal
+    """
+    idxs = [header.index(m) for m in molecules]
+    return np.delete(data, idxs, axis=1), np.delete(header, idxs).tolist()
+
+
+def get_concentration(data, header, molecules, sum_cols=False, norm=False):
+    if isinstance(molecules, str):
+        molecules = molecules.split(' ')
+
+    v = np.array([data[:, header.index(m)] for m in molecules]).T
+
+    if sum_cols:
+        v = np.array([np.sum(v, axis=1)]).T
+    if norm:
+        v = MinMaxScaler().fit_transform(v)
+    if v.shape[0] == 1:
+        v = v[0]
+    return v
 
 
 def prepare_trails(data, agregation):
@@ -17,65 +45,48 @@ def prepare_trails(data, agregation):
     :return:
     """
     if agregation == "concat":
-        data = data.reshape([data.shape[0], data.shape[1] * data.shape[2]])
+        data = data.reshape(data.shape[0]*data.shape[1], data.shape[2])
     elif agregation == "avg":
-        data = np.average(data, axis=2)
+        data = np.average(data, axis=0)
     else:
         raise NameError("Allowed trial agregation are: 'avg', 'concat'.")
 
     return data
 
 
-def pca(data, header, comp_num, importance_component_num=1):
-    ic = importance_component_num - 1
-    f = PCA(n_components=comp_num)
-    c = f.fit_transform(data)
-
-    a = c[:, 0].reshape(len(c), 1)
-    b = f.components_[ic, :].reshape(f.components_.shape[1], 1)
-    avg_importance = np.average(np.dot(a, b.T), axis=1).tolist()
-
-    return f, c, list(zip(header, avg_importance))
-
-
-def nmf(data, header, comp_num, importance_component_num=1, init='random', random_state=33):
-    ic = importance_component_num - 1
-    f = NMF(n_components=comp_num, init=init, random_state=random_state)
-    c = f.fit_transform(data)
-
-    avg_importance = c[:, ic]
-
-    return f, c, list(zip(header, avg_importance))
-
-
 if __name__ == '__main__':
     ap = argparse.ArgumentParser()
     ap.add_argument("--folder", default=None)
     ap.add_argument("--prefix", required=True)
-    ap.add_argument("--morphology", nargs='+', required=True)
+    ap.add_argument("--morphology", required=True)
     ap.add_argument("--component_number", required=True, type=int)
-    ap.add_argument("--agregation", help="Many trial agregation type: avg, concat. default=concat", default='concat')
+    ap.add_argument("--trials", nargs='+', help="Trial numbers if required. Default: take all trials", default=None, type=int)
+    ap.add_argument("--agregation", help="Many trial agregation type: avg, concat. Default: concat", default='concat')
 
     args = ap.parse_args()
 
-    for m in args.morphology:
-        header, data = get_data(folder=args.folder, prefix=args.prefix, morpho=m, no_time=True)
+    data, header = get_data(folder=args.folder, prefix=args.prefix, trials=args.trials, morpho=args.morphology)
+    data = prepare_trails(data, agregation=args.agregation)
 
-        data = prepare_trails(data, agregation=args.agregation)
-        data = MinMaxScaler().fit_transform(data)
+    to_exclude = [h for h in header if "out" in h.lower()]
+    to_exclude.append('time')
 
-        pca_f, pca_c, pca_i = pca(header=header, data=data, comp_num=args.component_number)
-        nmf_f, nmf_c, nmf_i = nmf(header=header, data=data, comp_num=args.component_number)
+    data, header = exclude(data, header, molecules=to_exclude)
+    print(header)
 
-        print('PCA variance explained:', round(sum(pca_f.explained_variance_ratio_)*100, 5))
-        print('NMF variance explained:', round(np.sum(nmf_c), 4))
-        print()
+    f = PCA(n_components=args.component_number)
+    c = f.fit_transform(MinMaxScaler().fit_transform(data))
 
-        pca_i = sorted(pca_i, key=lambda x: -x[1])
-        nmf_i = sorted(nmf_i, key=lambda x: -x[1])
+    # plot normalized PCA components
+    c = MinMaxScaler().fit_transform(c)
+    plt.plot(c[:, 0], label='Component_1')
+    plt.plot(c[:, 1], label='Component_2')
 
-        print("PCA / NMF")
-        for i in list(zip(pca_i, nmf_i))[:10]:
-            pcaval = "%s:%s" % (i[0][0], round(i[0][1], 4))
-            nmfval = "%s:%s" % (i[1][0], round(i[1][1], 4))
-            print("%s\t%s" % (pcaval, nmfval))
+    # plot normalized concentrations
+    plt.plot(get_concentration(data, header, molecules="CKp CKpCaMCa4", norm=True, sum_cols=True), label='CKp')
+    plt.plot(get_concentration(data, header, molecules="pbAR ppbAR pppbAR ppppbAR", norm=True, sum_cols=True), label='pbAR')
+    plt.plot(get_concentration(data, header, molecules="PKA", norm=True), label='PKA')
+
+    plt.legend(loc='best')
+    plt.show()
+    print('done')

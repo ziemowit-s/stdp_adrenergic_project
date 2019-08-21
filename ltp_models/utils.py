@@ -2,17 +2,17 @@ import os
 import numpy as np
 
 
-def get_data(folder, prefix, morpho, no_time=False):
+def get_data(folder, prefix, morpho, trials=None):
     """
-
+    Trial order is not guaranted
     :param folder:
         folder where all txt files for the model are
     :param prefix:
          model prefix (eg. model_start_..)
     :param morpho:
         morphology name (eg. head, neck, PSD)
-    :param no_time:
-        remove time column. Default False
+    :param trials:
+        trials number. Default is None, meaning all trials will be taken
     :return:
         tuple of header names and numpy array of results (np array of particles, values, trials)
     """
@@ -20,14 +20,11 @@ def get_data(folder, prefix, morpho, no_time=False):
     header = None
     for file in os.listdir(folder):
         if file.startswith(prefix) and file.endswith('%s.txt' % morpho):
+            if trials is not None and len([t for t in trials if 'trial%s' % t in file]) == 0:
+                continue
             path = os.path.join(folder, file) if folder is not None else file
             d = np.loadtxt(path, skiprows=1)
             with open(path) as f:
                 header = f.readline().split()
             data.append(d)
-    data = np.array(data).T
-
-    if no_time:
-        header = header[1:]
-        data = data[1:]
-    return header, data
+    return np.array(data), header
