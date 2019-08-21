@@ -32,6 +32,8 @@ def reduce_and_plot(reduction_type, n_components, data):
     for i in range(0, c.shape[1]):
         plt.plot(c[:, i], label='%s_%s' % (reduction_type, i))
 
+    return f, c
+
 
 def exclude(data, header, molecules):
     """
@@ -95,21 +97,40 @@ if __name__ == '__main__':
     data, header = get_data(folder=args.folder, prefix=args.prefix, trials=args.trials, morpho=args.morphology)
     data = prepare_trails(data, agregation=args.agregation)
 
-    to_exclude = ['time', 'Ca']
+    to_exclude = ['time', 'Ca', 'Leak']
     to_exclude.extend([h for h in header if "out" in h.lower()])
     to_exclude.extend([h for h in header if "buf" in h.lower()])
 
     data, header = exclude(data, header, molecules=to_exclude)
+
     print(header)
+    data = data[:1000, :]  # compute only for 1000 steps
 
-    reduce_and_plot('nmf', n_components=3, data=data)
-
+    plt.figure(1)
+    f, c = reduce_and_plot('nmf', n_components=3, data=data)
+    plot("CK", molecules="CK", data=data, header=header)
+    plot("Gi", molecules="Gi", data=data, header=header)
     plot("Gibg", molecules="Gibg", data=data, header=header)
     plot("PKA", molecules="PKA", data=data, header=header)
     plot("CKp", molecules="CKp CKpCaMCa4", data=data, header=header)
     plot("CaMCa", molecules="CaMCa2 CaMCa4", data=data, header=header)
     plot("pbAR", molecules="pbAR ppbAR pppbAR ppppbAR", data=data, header=header)
-
     plt.legend(loc='best')
+
+    plt.figure(2)
+    molecules_by_components = MinMaxScaler().fit_transform(f.components_.T)
+    x = np.arange(len(header))
+    plt.xticks(x, header, rotation=90)
+    plt.plot(x, molecules_by_components[:, 0])
+    plt.plot(x, molecules_by_components[:, 1])
+    plt.plot(x, molecules_by_components[:, 2])
+
+    c1_sorted = sorted(zip(header, molecules_by_components[:, 0]), key=lambda x: -x[1])
+    c2_sorted = sorted(zip(header, molecules_by_components[:, 1]), key=lambda x: -x[1])
+    c3_sorted = sorted(zip(header, molecules_by_components[:, 2]), key=lambda x: -x[1])
+
+    print(c1_sorted[:15])
+    print(c2_sorted[:15])
+    print(c3_sorted[:15])
     plt.show()
     print('done')
