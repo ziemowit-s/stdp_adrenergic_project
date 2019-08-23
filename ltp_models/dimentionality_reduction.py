@@ -15,7 +15,7 @@ PKAc_merge = 'PKAcISObAR PKAcpISObAR PKAcppISObAR PKAcpppISObAR PKAcbAR PKAcpbAR
 S845_merge = 'GluR1_S845 GluR1_S831 GluR1_S845_S831 GluR1_S845_S567 GluR1_S845_CKCaM GluR1_S845_CKpCaM GluR1_S845_CKp GluR1_S845_CKCaM2 GluR1_S845_CKpCaM2 GluR1_S845_CKp2 GluR1_S831_PKAc GluR1_S845_PP1 GluR1_S845_S831_PP1 GluR1_S845_S567_PP1 GluR1_S845_S831_PP1_2 GluR1_S845_S567_PP1_2 GluR1_S831_PP1 GluR1_S845_PP2B GluR1_S845_S831_PP2B GluR1_S845_S567_PP2B'
 
 
-def plot_component_importance(nmf, header, merge_components=None):
+def plot_component_importance(nmf, header, merge_components=None, avg=False, paradigm_name=None):
     probas = nmf.components_.T / np.sum(nmf.components_, axis=1) * 100
     all_compounds = np.zeros(probas.shape[1])
     if merge_components:
@@ -33,8 +33,12 @@ def plot_component_importance(nmf, header, merge_components=None):
     x = np.arange(len(header))
     plt.xticks(x, header, rotation=90)
 
-    for i in range(0, probas.shape[1]):
-        plt.plot(x, probas[:, i], label="comp_%s" % i)
+    if avg:
+        probas = np.average(probas, axis=1)
+        plt.plot(x, probas, label=paradigm_name)
+    else:
+        for i in range(0, probas.shape[1]):
+            plt.plot(x, probas[:, i], label="comp_%s_%s" % (i, paradigm_name if paradigm_name else ''))
     plt.legend(loc='best')
 
     print('All Compounds explanation by component:', all_compounds)
@@ -45,7 +49,7 @@ def plot(name, molecules, data, header, norm=False, sum_many_cols=True):
     plt.plot(c, label=name)
 
 
-def reduce_and_plot_nmf(data, n_components, norm=True):
+def nmf(data, n_components, norm=True, plot=True):
     if norm:
         data = MinMaxScaler().fit_transform(data)
 
@@ -58,8 +62,9 @@ def reduce_and_plot_nmf(data, n_components, norm=True):
     if norm:
         c = MinMaxScaler().fit_transform(c)
 
-    for i in range(0, c.shape[1]):
-        plt.plot(c[:, i], label='%s_%s' % ("NMF", i))
+    if plot:
+        for i in range(0, c.shape[1]):
+            plt.plot(c[:, i], label='%s_%s' % ("NMF", i))
 
     return nmf, c, explained_variance
 
@@ -136,8 +141,7 @@ def agregate_trails(data, agregation):
 
 if __name__ == '__main__':
     ap = argparse.ArgumentParser()
-    ap.add_argument("--folder", default=None)
-    ap.add_argument("--prefix", required=True)
+    ap.add_argument("--prefix", nargs='+', required=True)
     ap.add_argument("--morphology", required=True)
     ap.add_argument("--component_number", required=True, type=int)
     ap.add_argument("--trials", nargs='+', help="Trial numbers if required. Default: take all trials", default=None, type=int)
@@ -145,33 +149,28 @@ if __name__ == '__main__':
     args = ap.parse_args()
 
     # Prepare data
-    data, header = get_data(folder=args.folder, prefix=args.prefix, trials=args.trials, morpho=args.morphology)
-    data = agregate_trails(data, agregation=args.agregation)
-    data, header = exclude(data, header, exact=['time', 'Ca', 'Leak'], wildcard=['out', 'buf'])
-    data = data[:1000, :]  # compute only for 1000 steps
+    for paradigm in args.prefix:
+        data, header, paradigm_name = get_data(prefix=paradigm, trials=args.trials, morpho=args.morphology)
+        data = agregate_trails(data, agregation=args.agregation)
+        data, header = exclude(data, header, exact=['time', 'Ca', 'Leak'], wildcard=['out', 'buf'])
+        data = data[:1000, :]  # compute only for 1000 steps
 
-    # Make FIG 1
-    plt.figure(1)
-    nmf, nmf_c, explained_variance = reduce_and_plot_nmf(data, args.component_number)
-    plot("CKp_merge", molecules=CKp_merge, data=data, header=header, norm=True)
-    plot("pNMDAR", molecules="pNMDAR", data=data, header=header, norm=True)
-    plot("Ip35_merge", molecules=Ip35_merge, data=data, header=header, norm=True)
-    plot("pPDE4_merge", molecules=pPDE4_merge, data=data, header=header, norm=True)
-    plot("S845_merge", molecules=S845_merge, data=data, header=header, norm=True)
-    plot("PKAc_merge", molecules=PKAc_merge, data=data, header=header, norm=True)
-    plot("pbAR_merge", molecules=pbAR_merge, data=data, header=header, norm=True)
-    plt.legend(loc='best')
+        # Make FIG 1
+        #plt.figure(1)
+        nmf, nmf_c, explained_variance = nmf(data, args.component_number, plot=False)
+        #plot("CKp_merge", molecules=CKp_merge, data=data, header=header, norm=True)
+        #plot("pNMDAR", molecules="pNMDAR", data=data, header=header, norm=True)
+        #plot("Ip35_merge", molecules=Ip35_merge, data=data, header=header, norm=True)
+        #plot("pPDE4_merge", molecules=pPDE4_merge, data=data, header=header, norm=True)
+        #plot("S845_merge", molecules=S845_merge, data=data, header=header, norm=True)
+        #lot("PKAc_merge", molecules=PKAc_merge, data=data, header=header, norm=True)
+        #plot("pbAR_merge", molecules=pbAR_merge, data=data, header=header, norm=True)
+        #plt.legend(loc='best')
 
-    # Make FIG 2
-    plt.figure(2)
-    plot_component_importance(nmf, header,
-                              merge_components=[Ip35_merge, CKp_merge, pPDE4_merge, S845_merge, PKAc_merge, pbAR_merge])
+        # Make FIG 2
+        #plt.figure(2)
+        plot_component_importance(nmf, header, avg=True, paradigm_name=paradigm_name,
+                                  merge_components=[Ip35_merge, CKp_merge, pPDE4_merge, S845_merge, PKAc_merge, pbAR_merge])
+        print('NMF Explained Variance:', explained_variance)
 
-    # Print 15 the most important molecules for 2 components
-    #c1_sorted = sorted(zip(header, molecules_by_components[:, 0]), key=lambda x: -x[1])
-    #c2_sorted = sorted(zip(header, molecules_by_components[:, 1]), key=lambda x: -x[1])
-    #print(c1_sorted[:15])
-    #print(c2_sorted[:15])
-
-    print('NMF Explained Variance:', explained_variance)
     plt.show()

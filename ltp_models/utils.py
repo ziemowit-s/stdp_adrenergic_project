@@ -2,13 +2,11 @@ import os
 import numpy as np
 
 
-def get_data(folder, prefix, morpho, trials=None):
+def get_data(prefix, morpho, trials=None):
     """
     Trial order is not guaranted
-    :param folder:
-        folder where all txt files for the model are
     :param prefix:
-         model prefix (eg. model_start_..)
+         model prefix (eg. model_start_..) with folder
     :param morpho:
         morphology name (eg. head, neck, PSD)
     :param trials:
@@ -18,6 +16,9 @@ def get_data(folder, prefix, morpho, trials=None):
     """
     data = []
     header = None
+    path_list = prefix.split(os.path.sep)
+    folder = os.path.sep.join(path_list[:-1])
+    prefix = path_list[-1]
     for file in os.listdir(folder):
         if file.startswith(prefix) and file.endswith('%s.txt' % morpho):
             if trials is not None and len([t for t in trials if 'trial%s' % t in file]) == 0:
@@ -27,4 +28,4 @@ def get_data(folder, prefix, morpho, trials=None):
             with open(path) as f:
                 header = f.readline().split()
             data.append(d)
-    return np.array(data), header
+    return np.array(data), header, prefix
