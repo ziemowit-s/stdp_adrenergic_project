@@ -1,6 +1,4 @@
 import argparse
-from collections import Iterable
-
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -9,14 +7,46 @@ from sklearn.metrics import explained_variance_score
 from sklearn.preprocessing import MinMaxScaler
 from ltp_models.utils import get_data
 
+CKp_merge = "CKp CKpCaMCa4"
+pPDE4_merge = 'pPDE4 pPDE4cAMP'
+Ip35_merge = 'Ip35 Ip35PP1 Ip35PP2BCaMCa4 Ip35PP1PP2BCaMCa4'
+pbAR_merge = 'PKAcpbAR PKAcppbAR PKAcpppbAR pbAR ppbAR pppbAR ppppbAR ppppbARGi'
+PKAc_merge = 'PKAcISObAR PKAcpISObAR PKAcppISObAR PKAcpppISObAR PKAcbAR PKAcpbAR PKAcppbAR PKAcpppbAR PKAcAMP2 PKAcAMP4 PKAc I1PKAc PKAcNMDAR GluR1_PKAc GluR1_S831_PKAc GluR1_S567_PKAc PKAcPDE4 PKAc_PDE4_cAMP'
+S845_merge = 'GluR1_S845 GluR1_S831 GluR1_S845_S831 GluR1_S845_S567 GluR1_S845_CKCaM GluR1_S845_CKpCaM GluR1_S845_CKp GluR1_S845_CKCaM2 GluR1_S845_CKpCaM2 GluR1_S845_CKp2 GluR1_S831_PKAc GluR1_S845_PP1 GluR1_S845_S831_PP1 GluR1_S845_S567_PP1 GluR1_S845_S831_PP1_2 GluR1_S845_S567_PP1_2 GluR1_S831_PP1 GluR1_S845_PP2B GluR1_S845_S831_PP2B GluR1_S845_S567_PP2B'
 
-def plot(name, molecules, data, header):
-    c = get_concentration(data, header, molecules=molecules, norm=True, sum_cols=True)
+
+def plot_component_importance(nmf, header, merge_components=None):
+    probas = nmf.components_.T / np.sum(nmf.components_, axis=1) * 100
+    all_compounds = np.zeros(probas.shape[1])
+    if merge_components:
+        for molecules in merge_components:
+            if isinstance(molecules, str):
+                molecules = molecules.split(' ')
+            compound = np.array([probas[header.index(m), :] for m in molecules])
+            compound = np.sum(compound, axis=0)
+            all_compounds += compound
+            probas = np.concatenate([probas, compound.reshape(1, compound.shape[0])], axis=0)
+
+            compound_name = "%s_merged" % molecules[np.argmin([len(m) for m in molecules])]
+            header.append(compound_name)
+
+    x = np.arange(len(header))
+    plt.xticks(x, header, rotation=90)
+
+    for i in range(0, probas.shape[1]):
+        plt.plot(x, probas[:, i], label="comp_%s" % i)
+    plt.legend(loc='best')
+
+    print('All Compounds explanation by component:', all_compounds)
+
+
+def plot(name, molecules, data, header, norm=False, sum_many_cols=True):
+    c = get_concentration(data, header, molecules=molecules, norm=norm, sum_many_cols=sum_many_cols)
     plt.plot(c, label=name)
 
 
-def reduce_and_plot_nmf(data, n_components, normalize=True):
-    if normalize:
+def reduce_and_plot_nmf(data, n_components, norm=True):
+    if norm:
         data = MinMaxScaler().fit_transform(data)
 
     nmf = NMF(n_components=n_components)
@@ -24,6 +54,9 @@ def reduce_and_plot_nmf(data, n_components, normalize=True):
 
     predictions = nmf.inverse_transform(c)
     explained_variance = explained_variance_score(data, predictions)
+
+    if norm:
+        c = MinMaxScaler().fit_transform(c)
 
     for i in range(0, c.shape[1]):
         plt.plot(c[:, i], label='%s_%s' % ("NMF", i))
@@ -33,7 +66,6 @@ def reduce_and_plot_nmf(data, n_components, normalize=True):
 
 def exclude(data, header, exact=None, wildcard=None):
     """
-
     :param data:
     :param header:
     :param exact:
@@ -57,20 +89,26 @@ def exclude(data, header, exact=None, wildcard=None):
     for w in wildcard:
         to_exclude.extend([h for h in header if w in h.lower()])
 
-    idxs = [header.index(m) for m in to_exclude]
+    idxs = []
+    for m in to_exclude:
+        try:
+            idxs.append(header.index(m))
+        except ValueError:
+            continue
+
     data = np.delete(data, idxs, axis=1)
     header = np.delete(header, idxs).tolist()
 
     return data, header
 
 
-def get_concentration(data, header, molecules, sum_cols=False, norm=False):
+def get_concentration(data, header, molecules, norm=False, sum_many_cols=False):
     if isinstance(molecules, str):
         molecules = molecules.split(' ')
 
     v = np.array([data[:, header.index(m)] for m in molecules]).T
 
-    if sum_cols:
+    if sum_many_cols:
         v = np.array([np.sum(v, axis=1)]).T
     if norm:
         v = MinMaxScaler().fit_transform(v)
@@ -115,28 +153,25 @@ if __name__ == '__main__':
     # Make FIG 1
     plt.figure(1)
     nmf, nmf_c, explained_variance = reduce_and_plot_nmf(data, args.component_number)
-    plot("CK", molecules="CK", data=data, header=header)
-    plot("Gi", molecules="Gi", data=data, header=header)
-    plot("PKA", molecules="PKA", data=data, header=header)
-    plot("CKp", molecules="CKp CKpCaMCa4", data=data, header=header)
-    plot("pbAR", molecules="pbAR ppbAR pppbAR ppppbAR", data=data, header=header)
-    #plot("Gibg", molecules="Gibg", data=data, header=header)
-    #plot("CaMCa", molecules="CaMCa2 CaMCa4", data=data, header=header)
+    plot("CKp_merge", molecules=CKp_merge, data=data, header=header, norm=True)
+    plot("pNMDAR", molecules="pNMDAR", data=data, header=header, norm=True)
+    plot("Ip35_merge", molecules=Ip35_merge, data=data, header=header, norm=True)
+    plot("pPDE4_merge", molecules=pPDE4_merge, data=data, header=header, norm=True)
+    plot("S845_merge", molecules=S845_merge, data=data, header=header, norm=True)
+    plot("PKAc_merge", molecules=PKAc_merge, data=data, header=header, norm=True)
+    plot("pbAR_merge", molecules=pbAR_merge, data=data, header=header, norm=True)
     plt.legend(loc='best')
 
     # Make FIG 2
     plt.figure(2)
-    molecules_by_components = MinMaxScaler().fit_transform(nmf.components_.T)
-    x = np.arange(len(header))
-    plt.xticks(x, header, rotation=90)
-    plt.plot(x, molecules_by_components[:, 0])
-    plt.plot(x, molecules_by_components[:, 1])
+    plot_component_importance(nmf, header,
+                              merge_components=[Ip35_merge, CKp_merge, pPDE4_merge, S845_merge, PKAc_merge, pbAR_merge])
 
     # Print 15 the most important molecules for 2 components
-    c1_sorted = sorted(zip(header, molecules_by_components[:, 0]), key=lambda x: -x[1])
-    c2_sorted = sorted(zip(header, molecules_by_components[:, 1]), key=lambda x: -x[1])
-    print(c1_sorted[:15])
-    print(c2_sorted[:15])
-    print('NMF Explained Variance:', explained_variance)
+    #c1_sorted = sorted(zip(header, molecules_by_components[:, 0]), key=lambda x: -x[1])
+    #c2_sorted = sorted(zip(header, molecules_by_components[:, 1]), key=lambda x: -x[1])
+    #print(c1_sorted[:15])
+    #print(c2_sorted[:15])
 
+    print('NMF Explained Variance:', explained_variance)
     plt.show()
