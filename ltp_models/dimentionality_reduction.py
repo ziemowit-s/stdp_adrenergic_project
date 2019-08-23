@@ -4,7 +4,8 @@ from collections import Iterable
 import numpy as np
 import matplotlib.pyplot as plt
 
-from sklearn.decomposition import PCA, NMF
+from sklearn.decomposition import NMF
+from sklearn.metrics import explained_variance_score
 from sklearn.preprocessing import MinMaxScaler
 from ltp_models.utils import get_data
 
@@ -14,37 +15,49 @@ def plot(name, molecules, data, header):
     plt.plot(c, label=name)
 
 
-def reduce_and_plot(reduction_type, n_components, data):
-    reduction_type = reduction_type.lower().strip()
-    if reduction_type == 'pca':
-        r = PCA
-    elif reduction_type == 'nmf':
-        r = NMF
-    else:
-        raise TypeError("Wrong type of reduction class. Allowed: PCA, NMF.")
+def reduce_and_plot_nmf(data, n_components, normalize=True):
+    if normalize:
+        data = MinMaxScaler().fit_transform(data)
 
-    data = MinMaxScaler().fit_transform(data)
+    nmf = NMF(n_components=n_components)
+    c = nmf.fit_transform(data)
 
-    f = r(n_components=n_components)
-    c = f.fit_transform(data)
-    c = MinMaxScaler().fit_transform(c)
+    predictions = nmf.inverse_transform(c)
+    explained_variance = explained_variance_score(data, predictions)
 
     for i in range(0, c.shape[1]):
-        plt.plot(c[:, i], label='%s_%s' % (reduction_type, i))
+        plt.plot(c[:, i], label='%s_%s' % ("NMF", i))
 
-    return f, c
+    return nmf, c, explained_variance
 
 
-def exclude(data, header, molecules):
+def exclude(data, header, exact=None, wildcard=None):
     """
+
     :param data:
     :param header:
-    :param molecules:
+    :param exact:
+        to exclude by exact name
+    :param wildcard:
+        to exclude by name which contains
     :return:
         tuple(data, header) after removal
     """
-    idxs = [header.index(m) for m in molecules]
+    if exact is None:
+        exact = []
+    if wildcard is None:
+        wildcard = []
 
+    if isinstance(exact, str):
+        exact = exact.split(' ')
+    if isinstance(wildcard, str):
+        wildcard = wildcard.split(' ')
+
+    to_exclude = exact
+    for w in wildcard:
+        to_exclude.extend([h for h in header if w in h.lower()])
+
+    idxs = [header.index(m) for m in to_exclude]
     data = np.delete(data, idxs, axis=1)
     header = np.delete(header, idxs).tolist()
 
@@ -66,7 +79,7 @@ def get_concentration(data, header, molecules, sum_cols=False, norm=False):
     return v
 
 
-def prepare_trails(data, agregation):
+def agregate_trails(data, agregation):
     """
     :param data:
     :param agregation:
@@ -91,46 +104,39 @@ if __name__ == '__main__':
     ap.add_argument("--component_number", required=True, type=int)
     ap.add_argument("--trials", nargs='+', help="Trial numbers if required. Default: take all trials", default=None, type=int)
     ap.add_argument("--agregation", help="Many trial agregation type: avg, concat. Default: concat", default='concat')
-
     args = ap.parse_args()
 
+    # Prepare data
     data, header = get_data(folder=args.folder, prefix=args.prefix, trials=args.trials, morpho=args.morphology)
-    data = prepare_trails(data, agregation=args.agregation)
-
-    to_exclude = ['time', 'Ca', 'Leak']
-    to_exclude.extend([h for h in header if "out" in h.lower()])
-    to_exclude.extend([h for h in header if "buf" in h.lower()])
-
-    data, header = exclude(data, header, molecules=to_exclude)
-
-    print(header)
+    data = agregate_trails(data, agregation=args.agregation)
+    data, header = exclude(data, header, exact=['time', 'Ca', 'Leak'], wildcard=['out', 'buf'])
     data = data[:1000, :]  # compute only for 1000 steps
 
+    # Make FIG 1
     plt.figure(1)
-    f, c = reduce_and_plot('nmf', n_components=3, data=data)
+    nmf, nmf_c, explained_variance = reduce_and_plot_nmf(data, args.component_number)
     plot("CK", molecules="CK", data=data, header=header)
     plot("Gi", molecules="Gi", data=data, header=header)
-    plot("Gibg", molecules="Gibg", data=data, header=header)
     plot("PKA", molecules="PKA", data=data, header=header)
     plot("CKp", molecules="CKp CKpCaMCa4", data=data, header=header)
-    plot("CaMCa", molecules="CaMCa2 CaMCa4", data=data, header=header)
     plot("pbAR", molecules="pbAR ppbAR pppbAR ppppbAR", data=data, header=header)
+    #plot("Gibg", molecules="Gibg", data=data, header=header)
+    #plot("CaMCa", molecules="CaMCa2 CaMCa4", data=data, header=header)
     plt.legend(loc='best')
 
+    # Make FIG 2
     plt.figure(2)
-    molecules_by_components = MinMaxScaler().fit_transform(f.components_.T)
+    molecules_by_components = MinMaxScaler().fit_transform(nmf.components_.T)
     x = np.arange(len(header))
     plt.xticks(x, header, rotation=90)
     plt.plot(x, molecules_by_components[:, 0])
     plt.plot(x, molecules_by_components[:, 1])
-    plt.plot(x, molecules_by_components[:, 2])
 
+    # Print 15 the most important molecules for 2 components
     c1_sorted = sorted(zip(header, molecules_by_components[:, 0]), key=lambda x: -x[1])
     c2_sorted = sorted(zip(header, molecules_by_components[:, 1]), key=lambda x: -x[1])
-    c3_sorted = sorted(zip(header, molecules_by_components[:, 2]), key=lambda x: -x[1])
-
     print(c1_sorted[:15])
     print(c2_sorted[:15])
-    print(c3_sorted[:15])
+    print('NMF Explained Variance:', explained_variance)
+
     plt.show()
-    print('done')
