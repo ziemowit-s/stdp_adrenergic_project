@@ -1,0 +1,128 @@
+<html>
+<head>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.16.1/vis.css" type="text/css" />
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.16.1/vis-network.min.js"> </script>
+
+<!-- <link rel="stylesheet" href="../node_modules/vis/dist/vis.min.css" type="text/css" />
+<script type="text/javascript" src="../node_modules/vis/dist/vis.js"> </script>-->
+
+<style type="text/css">
+
+        #mynetwork {
+            width: 100%;
+            height: 100%;
+            background-color: #222222;
+            border: 1px solid lightgray;
+            position: relative;
+            float: left;
+        }
+
+        
+
+        
+        #config {
+            float: left;
+            width: 400px;
+            height: 600px;
+        }
+        
+
+        
+</style>
+
+</head>
+
+<body>
+<div id = "mynetwork"></div>
+
+
+<div id = "config"></div>
+
+<script type="text/javascript">
+
+    // initialize global variables.
+    var edges;
+    var nodes;
+    var network; 
+    var container;
+    var options, data;
+
+    
+    // This method is responsible for drawing the graph, returns the drawn network
+    function drawGraph() {
+        var container = document.getElementById('mynetwork');
+        
+        
+
+        // parsing and collecting nodes and edges from the python
+        nodes = new vis.DataSet([{"color": "#80bfff", "font": {"color": "white"}, "id": "GluR1_CKpCaM", "label": "GluR1_CKpCaM", "shape": "dot"}, {"color": "#80bfff", "font": {"color": "white"}, "id": "GluR1_S831", "label": "GluR1_S831", "shape": "dot"}, {"color": "#969696", "font": {"color": "white"}, "id": "GluR1_CKpCaM_diss", "label": "R", "shape": "diamond", "size": 10, "title": "GluR1_CKpCaM_diss"}, {"color": "#80bfff", "font": {"color": "white"}, "id": "CKpCaMCa4", "label": "CKpCaMCa4", "shape": "dot"}, {"color": "#80bfff", "font": {"color": "white"}, "id": "GluR1_CKp", "label": "GluR1_CKp", "shape": "dot"}, {"color": "#969696", "font": {"color": "white"}, "id": "GluR1_CKp_diss", "label": "R", "shape": "diamond", "size": 10, "title": "GluR1_CKp_diss"}, {"color": "#f5ce42", "font": {"color": "white"}, "id": "CKp", "label": "CKp", "shape": "dot"}, {"color": "#80bfff", "font": {"color": "white"}, "id": "GluR1_CKpCaM2", "label": "GluR1_CKpCaM2", "shape": "dot"}, {"color": "#80bfff", "font": {"color": "white"}, "id": "GluR1_S567", "label": "GluR1_S567", "shape": "dot"}, {"color": "#969696", "font": {"color": "white"}, "id": "GluR1_CKpCaM_diss2", "label": "R", "shape": "diamond", "size": 10, "title": "GluR1_CKpCaM_diss2"}, {"color": "#80bfff", "font": {"color": "white"}, "id": "GluR1_CKp2", "label": "GluR1_CKp2", "shape": "dot"}, {"color": "#969696", "font": {"color": "white"}, "id": "GluR1_CKp_diss2", "label": "R", "shape": "diamond", "size": 10, "title": "GluR1_CKp_diss2"}, {"color": "#80bfff", "font": {"color": "white"}, "id": "GluR1_S845_CKpCaM2", "label": "GluR1_S845_CKpCaM2", "shape": "dot"}, {"color": "#80bfff", "font": {"color": "white"}, "id": "GluR1_S845_S831", "label": "GluR1_S845_S831", "shape": "dot"}, {"color": "#969696", "font": {"color": "white"}, "id": "GluR1_S845_CKpCaM_diss", "label": "R", "shape": "diamond", "size": 10, "title": "GluR1_S845_CKpCaM_diss"}, {"color": "#80bfff", "font": {"color": "white"}, "id": "GluR1_S845_CKp2", "label": "GluR1_S845_CKp2", "shape": "dot"}, {"color": "#969696", "font": {"color": "white"}, "id": "GluR1_S845_CKp_diss", "label": "R", "shape": "diamond", "size": 10, "title": "GluR1_S845_CKp_diss"}, {"color": "#80bfff", "font": {"color": "white"}, "id": "GluR1_S845_CKpCaM", "label": "GluR1_S845_CKpCaM", "shape": "dot"}, {"color": "#80bfff", "font": {"color": "white"}, "id": "GluR1_S845_S567", "label": "GluR1_S845_S567", "shape": "dot"}, {"color": "#969696", "font": {"color": "white"}, "id": "GluR1_S845_CKpCaM_diss2", "label": "R", "shape": "diamond", "size": 10, "title": "GluR1_S845_CKpCaM_diss2"}, {"color": "#80bfff", "font": {"color": "white"}, "id": "GluR1_S845_CKp", "label": "GluR1_S845_CKp", "shape": "dot"}, {"color": "#969696", "font": {"color": "white"}, "id": "GluR1_S845_CKp_diss2", "label": "R", "shape": "diamond", "size": 10, "title": "GluR1_S845_CKp_diss2"}, {"color": "#80bfff", "font": {"color": "white"}, "id": "GluR1", "label": "GluR1", "shape": "dot"}, {"color": "#969696", "font": {"color": "white"}, "id": "GluR1_CKpCaM_bind2", "label": "R", "shape": "diamond", "size": 10, "title": "GluR1_CKpCaM_bind2"}, {"color": "#969696", "font": {"color": "white"}, "id": "GluR1_CKp_bind2", "label": "R", "shape": "diamond", "size": 10, "title": "GluR1_CKp_bind2"}, {"color": "#80bfff", "font": {"color": "white"}, "id": "GluR1_S845", "label": "GluR1_S845", "shape": "dot"}, {"color": "#969696", "font": {"color": "white"}, "id": "GluR1_S845_CKpCaM_bind2", "label": "R", "shape": "diamond", "size": 10, "title": "GluR1_S845_CKpCaM_bind2"}, {"color": "#969696", "font": {"color": "white"}, "id": "GluR1_S845_CKp_bind2", "label": "R", "shape": "diamond", "size": 10, "title": "GluR1_S845_CKp_bind2"}, {"color": "#80bfff", "font": {"color": "white"}, "id": "CKpCaMCa4PP1", "label": "CKpCaMCa4PP1", "shape": "dot"}, {"color": "#969696", "font": {"color": "white"}, "id": "CKpCaMCa4PP1_bind", "label": "R", "shape": "diamond", "size": 10, "title": "CKpCaMCa4PP1_bind"}, {"color": "#80bfff", "font": {"color": "white"}, "id": "PP1", "label": "PP1", "shape": "dot"}, {"color": "#80bfff", "font": {"color": "white"}, "id": "CKpPP1", "label": "CKpPP1", "shape": "dot"}, {"color": "#969696", "font": {"color": "white"}, "id": "CKp bind", "label": "R", "shape": "diamond", "size": 10, "title": "CKp bind"}, {"color": "#969696", "font": {"color": "white"}, "id": "GluR1_CKpCaM_bind", "label": "R", "shape": "diamond", "size": 10, "title": "GluR1_CKpCaM_bind"}, {"color": "#969696", "font": {"color": "white"}, "id": "GluR1_CKp_bind", "label": "R", "shape": "diamond", "size": 10, "title": "GluR1_CKp_bind"}, {"color": "#969696", "font": {"color": "white"}, "id": "GluR1_S845_CKpCaM_bind", "label": "R", "shape": "diamond", "size": 10, "title": "GluR1_S845_CKpCaM_bind"}, {"color": "#969696", "font": {"color": "white"}, "id": "GluR1_S845_CKp_bind", "label": "R", "shape": "diamond", "size": 10, "title": "GluR1_S845_CKp_bind"}, {"color": "#80bfff", "font": {"color": "white"}, "id": "CaMCa4", "label": "CaMCa4", "shape": "dot"}, {"color": "#969696", "font": {"color": "white"}, "id": "CKp auto", "label": "R", "shape": "diamond", "size": 10, "title": "CKp auto"}, {"color": "#969696", "font": {"color": "white"}, "id": "CKpPP1 reac", "label": "R", "shape": "diamond", "size": 10, "title": "CKpPP1 reac"}, {"color": "#80bfff", "font": {"color": "white"}, "id": "CK", "label": "CK", "shape": "dot"}, {"color": "#969696", "font": {"color": "white"}, "id": "CKpCaMCa4PP1_reac", "label": "R", "shape": "diamond", "size": 10, "title": "CKpCaMCa4PP1_reac"}, {"color": "#80bfff", "font": {"color": "white"}, "id": "CKCaMCa4", "label": "CKCaMCa4", "shape": "dot"}, {"color": "#969696", "font": {"color": "white"}, "id": "CKCaM bind2", "label": "R", "shape": "diamond", "size": 10, "title": "CKCaM bind2"}, {"color": "#969696", "font": {"color": "white"}, "id": "CKCaM bind3", "label": "R", "shape": "diamond", "size": 10, "title": "CKCaM bind3"}, {"color": "#969696", "font": {"color": "white"}, "id": "CKCaM bind1", "label": "R", "shape": "diamond", "size": 10, "title": "CKCaM bind1"}]);
+        edges = new vis.DataSet([{"arrows": "to", "color": "#91db7b", "from": "GluR1_CKpCaM", "title": 0.006, "to": "GluR1_CKpCaM_diss", "value": 0.006}, {"arrows": "to", "color": "#91db7b", "from": "GluR1_CKpCaM_diss", "title": 0.006, "to": "GluR1_S831", "value": 0.006}, {"arrows": "to", "color": "#91db7b", "from": "GluR1_CKpCaM", "title": 0.006, "to": "GluR1_CKpCaM_diss", "value": 0.006}, {"arrows": "to", "color": "#91db7b", "from": "GluR1_CKpCaM_diss", "title": 0.006, "to": "CKpCaMCa4", "value": 0.006}, {"arrows": "to", "color": "#91db7b", "from": "GluR1_CKp", "title": 0.006, "to": "GluR1_CKp_diss", "value": 0.006}, {"arrows": "to", "color": "#91db7b", "from": "GluR1_CKp_diss", "title": 0.006, "to": "GluR1_S831", "value": 0.006}, {"arrows": "to", "color": "#91db7b", "from": "GluR1_CKp", "title": 0.006, "to": "GluR1_CKp_diss", "value": 0.006}, {"arrows": "to", "color": "#91db7b", "from": "GluR1_CKp_diss", "title": 0.006, "to": "CKp", "value": 0.006}, {"arrows": "to", "color": "#91db7b", "from": "GluR1_CKpCaM2", "title": 0.006, "to": "GluR1_CKpCaM_diss2", "value": 0.006}, {"arrows": "to", "color": "#91db7b", "from": "GluR1_CKpCaM_diss2", "title": 0.006, "to": "GluR1_S567", "value": 0.006}, {"arrows": "to", "color": "#91db7b", "from": "GluR1_CKpCaM2", "title": 0.006, "to": "GluR1_CKpCaM_diss2", "value": 0.006}, {"arrows": "to", "color": "#91db7b", "from": "GluR1_CKpCaM_diss2", "title": 0.006, "to": "CKpCaMCa4", "value": 0.006}, {"arrows": "to", "color": "#91db7b", "from": "GluR1_CKp2", "title": 0.006, "to": "GluR1_CKp_diss2", "value": 0.006}, {"arrows": "to", "color": "#91db7b", "from": "GluR1_CKp_diss2", "title": 0.006, "to": "GluR1_S567", "value": 0.006}, {"arrows": "to", "color": "#91db7b", "from": "GluR1_CKp2", "title": 0.006, "to": "GluR1_CKp_diss2", "value": 0.006}, {"arrows": "to", "color": "#91db7b", "from": "GluR1_CKp_diss2", "title": 0.006, "to": "CKp", "value": 0.006}, {"arrows": "to", "color": "#91db7b", "from": "GluR1_S845_CKpCaM2", "title": 0.006, "to": "GluR1_S845_CKpCaM_diss", "value": 0.006}, {"arrows": "to", "color": "#91db7b", "from": "GluR1_S845_CKpCaM_diss", "title": 0.006, "to": "GluR1_S845_S831", "value": 0.006}, {"arrows": "to", "color": "#91db7b", "from": "GluR1_S845_CKpCaM2", "title": 0.006, "to": "GluR1_S845_CKpCaM_diss", "value": 0.006}, {"arrows": "to", "color": "#91db7b", "from": "GluR1_S845_CKpCaM_diss", "title": 0.006, "to": "CKpCaMCa4", "value": 0.006}, {"arrows": "to", "color": "#91db7b", "from": "GluR1_S845_CKp2", "title": 0.006, "to": "GluR1_S845_CKp_diss", "value": 0.006}, {"arrows": "to", "color": "#91db7b", "from": "GluR1_S845_CKp_diss", "title": 0.006, "to": "GluR1_S845_S831", "value": 0.006}, {"arrows": "to", "color": "#91db7b", "from": "GluR1_S845_CKp2", "title": 0.006, "to": "GluR1_S845_CKp_diss", "value": 0.006}, {"arrows": "to", "color": "#91db7b", "from": "GluR1_S845_CKp_diss", "title": 0.006, "to": "CKp", "value": 0.006}, {"arrows": "to", "color": "#91db7b", "from": "GluR1_S845_CKpCaM", "title": 0.006, "to": "GluR1_S845_CKpCaM_diss2", "value": 0.006}, {"arrows": "to", "color": "#91db7b", "from": "GluR1_S845_CKpCaM_diss2", "title": 0.006, "to": "GluR1_S845_S567", "value": 0.006}, {"arrows": "to", "color": "#91db7b", "from": "GluR1_S845_CKpCaM", "title": 0.006, "to": "GluR1_S845_CKpCaM_diss2", "value": 0.006}, {"arrows": "to", "color": "#91db7b", "from": "GluR1_S845_CKpCaM_diss2", "title": 0.006, "to": "CKpCaMCa4", "value": 0.006}, {"arrows": "to", "color": "#91db7b", "from": "GluR1_S845_CKp", "title": 0.006, "to": "GluR1_S845_CKp_diss2", "value": 0.006}, {"arrows": "to", "color": "#91db7b", "from": "GluR1_S845_CKp_diss2", "title": 0.006, "to": "GluR1_S845_S567", "value": 0.006}, {"arrows": "to", "color": "#91db7b", "from": "GluR1_S845_CKp", "title": 0.006, "to": "GluR1_S845_CKp_diss2", "value": 0.006}, {"arrows": "to", "color": "#91db7b", "from": "GluR1_S845_CKp_diss2", "title": 0.006, "to": "CKp", "value": 0.006}, {"arrows": "to", "color": "#ff9999", "from": "GluR1", "title": 623.4802668495543, "to": "GluR1_CKpCaM_bind2", "value": 623.4802668495543}, {"arrows": "to", "color": "#ff9999", "from": "GluR1_CKpCaM_bind2", "title": 623.4802668495543, "to": "GluR1_CKpCaM2", "value": 623.4802668495543}, {"arrows": "to", "color": "#ff9999", "from": "CKpCaMCa4", "title": 623.4802668495543, "to": "GluR1_CKpCaM_bind2", "value": 623.4802668495543}, {"arrows": "to", "color": "#ff9999", "from": "GluR1_CKpCaM_bind2", "title": 623.4802668495543, "to": "GluR1_CKpCaM2", "value": 623.4802668495543}, {"arrows": "to", "color": "#ff9999", "from": "GluR1", "title": 624.562806035775, "to": "GluR1_CKp_bind2", "value": 624.562806035775}, {"arrows": "to", "color": "#ff9999", "from": "GluR1_CKp_bind2", "title": 624.562806035775, "to": "GluR1_CKp2", "value": 624.562806035775}, {"arrows": "to", "color": "#ff9999", "from": "CKp", "title": 624.562806035775, "to": "GluR1_CKp_bind2", "value": 624.562806035775}, {"arrows": "to", "color": "#ff9999", "from": "GluR1_CKp_bind2", "title": 624.562806035775, "to": "GluR1_CKp2", "value": 624.562806035775}, {"arrows": "to", "color": "#ff9999", "from": "GluR1_S845", "title": 623.4802668495543, "to": "GluR1_S845_CKpCaM_bind2", "value": 623.4802668495543}, {"arrows": "to", "color": "#ff9999", "from": "GluR1_S845_CKpCaM_bind2", "title": 623.4802668495543, "to": "GluR1_S845_CKpCaM", "value": 623.4802668495543}, {"arrows": "to", "color": "#ff9999", "from": "CKpCaMCa4", "title": 623.4802668495543, "to": "GluR1_S845_CKpCaM_bind2", "value": 623.4802668495543}, {"arrows": "to", "color": "#ff9999", "from": "GluR1_S845_CKpCaM_bind2", "title": 623.4802668495543, "to": "GluR1_S845_CKpCaM", "value": 623.4802668495543}, {"arrows": "to", "color": "#ff9999", "from": "GluR1_S845", "title": 624.562806035775, "to": "GluR1_S845_CKp_bind2", "value": 624.562806035775}, {"arrows": "to", "color": "#ff9999", "from": "GluR1_S845_CKp_bind2", "title": 624.562806035775, "to": "GluR1_S845_CKp", "value": 624.562806035775}, {"arrows": "to", "color": "#ff9999", "from": "CKp", "title": 624.562806035775, "to": "GluR1_S845_CKp_bind2", "value": 624.562806035775}, {"arrows": "to", "color": "#ff9999", "from": "GluR1_S845_CKp_bind2", "title": 624.562806035775, "to": "GluR1_S845_CKp", "value": 624.562806035775}, {"arrows": "to", "color": "#ff9999", "from": "CKpCaMCa4", "title": 180000.0, "to": "CKpCaMCa4PP1_bind", "value": 10000}, {"arrows": "to", "color": "#ff9999", "from": "CKpCaMCa4PP1_bind", "title": 180000.0, "to": "CKpCaMCa4PP1", "value": 10000}, {"arrows": "to", "color": "#ff9999", "from": "PP1", "title": 180000.0, "to": "CKpCaMCa4PP1_bind", "value": 10000}, {"arrows": "to", "color": "#ff9999", "from": "CKpCaMCa4PP1_bind", "title": 180000.0, "to": "CKpCaMCa4PP1", "value": 10000}, {"arrows": "to", "color": "#ff9999", "from": "CKp", "title": 17777.77777777778, "to": "CKp bind", "value": 10000}, {"arrows": "to", "color": "#ff9999", "from": "CKp bind", "title": 17777.77777777778, "to": "CKpPP1", "value": 10000}, {"arrows": "to", "color": "#ff9999", "from": "PP1", "title": 17777.77777777778, "to": "CKp bind", "value": 10000}, {"arrows": "to", "color": "#ff9999", "from": "CKp bind", "title": 17777.77777777778, "to": "CKpPP1", "value": 10000}, {"arrows": "to", "color": "#ff9999", "from": "GluR1", "title": 1525.320317266626, "to": "GluR1_CKpCaM_bind", "value": 1525.320317266626}, {"arrows": "to", "color": "#ff9999", "from": "GluR1_CKpCaM_bind", "title": 1525.320317266626, "to": "GluR1_CKpCaM", "value": 1525.320317266626}, {"arrows": "to", "color": "#ff9999", "from": "CKpCaMCa4", "title": 1525.320317266626, "to": "GluR1_CKpCaM_bind", "value": 1525.320317266626}, {"arrows": "to", "color": "#ff9999", "from": "GluR1_CKpCaM_bind", "title": 1525.320317266626, "to": "GluR1_CKpCaM", "value": 1525.320317266626}, {"arrows": "to", "color": "#ff9999", "from": "GluR1", "title": 1551.6385302879844, "to": "GluR1_CKp_bind", "value": 1551.6385302879844}, {"arrows": "to", "color": "#ff9999", "from": "GluR1_CKp_bind", "title": 1551.6385302879844, "to": "GluR1_CKp", "value": 1551.6385302879844}, {"arrows": "to", "color": "#ff9999", "from": "CKp", "title": 1551.6385302879844, "to": "GluR1_CKp_bind", "value": 1551.6385302879844}, {"arrows": "to", "color": "#ff9999", "from": "GluR1_CKp_bind", "title": 1551.6385302879844, "to": "GluR1_CKp", "value": 1551.6385302879844}, {"arrows": "to", "color": "#ff9999", "from": "GluR1_S845", "title": 1525.320317266626, "to": "GluR1_S845_CKpCaM_bind", "value": 1525.320317266626}, {"arrows": "to", "color": "#ff9999", "from": "GluR1_S845_CKpCaM_bind", "title": 1525.320317266626, "to": "GluR1_S845_CKpCaM2", "value": 1525.320317266626}, {"arrows": "to", "color": "#ff9999", "from": "CKpCaMCa4", "title": 1525.320317266626, "to": "GluR1_S845_CKpCaM_bind", "value": 1525.320317266626}, {"arrows": "to", "color": "#ff9999", "from": "GluR1_S845_CKpCaM_bind", "title": 1525.320317266626, "to": "GluR1_S845_CKpCaM2", "value": 1525.320317266626}, {"arrows": "to", "color": "#ff9999", "from": "GluR1_S845", "title": 1551.6385302879844, "to": "GluR1_S845_CKp_bind", "value": 1551.6385302879844}, {"arrows": "to", "color": "#ff9999", "from": "GluR1_S845_CKp_bind", "title": 1551.6385302879844, "to": "GluR1_S845_CKp2", "value": 1551.6385302879844}, {"arrows": "to", "color": "#ff9999", "from": "CKp", "title": 1551.6385302879844, "to": "GluR1_S845_CKp_bind", "value": 1551.6385302879844}, {"arrows": "to", "color": "#ff9999", "from": "GluR1_S845_CKp_bind", "title": 1551.6385302879844, "to": "GluR1_S845_CKp2", "value": 1551.6385302879844}, {"arrows": "to", "color": "#ff9999", "from": "CKpCaMCa4", "title": 25.000000000000004, "to": "CKp auto", "value": 25.000000000000004}, {"arrows": "to", "color": "#ff9999", "from": "CKp auto", "title": 25.000000000000004, "to": "CaMCa4", "value": 25.000000000000004}, {"arrows": "to", "color": "#ff9999", "from": "CKpCaMCa4", "title": 25.000000000000004, "to": "CKp auto", "value": 25.000000000000004}, {"arrows": "to", "color": "#ff9999", "from": "CKp auto", "title": 25.000000000000004, "to": "CKp", "value": 25.000000000000004}, {"arrows": "to", "color": "#91db7b", "from": "CKpPP1", "title": 1e-05, "to": "CKpPP1 reac", "value": 1e-05}, {"arrows": "to", "color": "#91db7b", "from": "CKpPP1 reac", "title": 1e-05, "to": "PP1", "value": 1e-05}, {"arrows": "to", "color": "#91db7b", "from": "CKpPP1", "title": 1e-05, "to": "CKpPP1 reac", "value": 1e-05}, {"arrows": "to", "color": "#91db7b", "from": "CKpPP1 reac", "title": 1e-05, "to": "CK", "value": 1e-05}, {"arrows": "to", "color": "#91db7b", "from": "CKpCaMCa4PP1", "title": 4.5e-06, "to": "CKpCaMCa4PP1_reac", "value": 4.5e-06}, {"arrows": "to", "color": "#91db7b", "from": "CKpCaMCa4PP1_reac", "title": 4.5e-06, "to": "PP1", "value": 4.5e-06}, {"arrows": "to", "color": "#91db7b", "from": "CKpCaMCa4PP1", "title": 4.5e-06, "to": "CKpCaMCa4PP1_reac", "value": 4.5e-06}, {"arrows": "to", "color": "#91db7b", "from": "CKpCaMCa4PP1_reac", "title": 4.5e-06, "to": "CKCaMCa4", "value": 4.5e-06}, {"arrows": "to", "color": "#91db7b", "from": "CKCaMCa4", "title": 4e-12, "to": "CKCaM bind2", "value": 4e-12}, {"arrows": "to", "color": "#91db7b", "from": "CKCaM bind2", "title": 4e-12, "to": "CKCaMCa4", "value": 4e-12}, {"arrows": "to", "color": "#91db7b", "from": "CKCaMCa4", "title": 4e-12, "to": "CKCaM bind2", "value": 4e-12}, {"arrows": "to", "color": "#91db7b", "from": "CKCaM bind2", "title": 4e-12, "to": "CKpCaMCa4", "value": 4e-12}, {"arrows": "to", "color": "#91db7b", "from": "CKpCaMCa4", "title": 5.51e-17, "to": "CKCaM bind3", "value": 5.51e-17}, {"arrows": "to", "color": "#91db7b", "from": "CKCaM bind3", "title": 5.51e-17, "to": "CKCaMCa4", "value": 5.51e-17}, {"arrows": "to", "color": "#91db7b", "from": "CKpCaMCa4", "title": 5.51e-17, "to": "CKCaM bind3", "value": 5.51e-17}, {"arrows": "to", "color": "#91db7b", "from": "CKCaM bind3", "title": 5.51e-17, "to": "CKpCaMCa4", "value": 5.51e-17}, {"arrows": "to", "color": "#91db7b", "from": "CKCaMCa4", "title": 5.51e-17, "to": "CKCaM bind3", "value": 5.51e-17}, {"arrows": "to", "color": "#91db7b", "from": "CKCaM bind3", "title": 5.51e-17, "to": "CKCaMCa4", "value": 5.51e-17}, {"arrows": "to", "color": "#91db7b", "from": "CKCaMCa4", "title": 5.51e-17, "to": "CKCaM bind3", "value": 5.51e-17}, {"arrows": "to", "color": "#91db7b", "from": "CKCaM bind3", "title": 5.51e-17, "to": "CKpCaMCa4", "value": 5.51e-17}, {"arrows": "to", "color": "#91db7b", "from": "CKCaMCa4", "title": 3.5e-17, "to": "CKCaM bind1", "value": 3.5e-17}, {"arrows": "to", "color": "#91db7b", "from": "CKCaM bind1", "title": 3.5e-17, "to": "CKCaMCa4", "value": 3.5e-17}, {"arrows": "to", "color": "#91db7b", "from": "CKCaMCa4", "title": 3.5e-17, "to": "CKCaM bind1", "value": 3.5e-17}, {"arrows": "to", "color": "#91db7b", "from": "CKCaM bind1", "title": 3.5e-17, "to": "CKpCaMCa4", "value": 3.5e-17}]);
+
+        // adding nodes and edges to the graph
+        data = {nodes: nodes, edges: edges};
+
+        var options = {
+    "configure": {
+        "enabled": true,
+        "filter": [
+            "physics"
+        ]
+    },
+    "edges": {
+        "color": {
+            "inherit": true
+        },
+        "smooth": {
+            "enabled": false,
+            "type": "continuous"
+        }
+    },
+    "interaction": {
+        "dragNodes": true,
+        "hideEdgesOnDrag": false,
+        "hideNodesOnDrag": false
+    },
+    "physics": {
+        "enabled": true,
+        "hierarchicalRepulsion": {
+            "centralGravity": 0.0,
+            "damping": 0.09,
+            "nodeDistance": 140,
+            "springConstant": 0.001,
+            "springLength": 100
+        },
+        "solver": "hierarchicalRepulsion",
+        "stabilization": {
+            "enabled": true,
+            "fit": true,
+            "iterations": 1000,
+            "onlyDynamicEdges": false,
+            "updateInterval": 50
+        }
+    }
+};
+        
+        
+
+        
+        // if this network requires displaying the configure window,
+        // put it in its div
+        options.configure["container"] = document.getElementById("config");
+        
+
+        network = new vis.Network(container, data, options);
+
+        
+
+
+        
+
+        return network;
+
+    }
+
+    drawGraph();
+
+</script>
+</body>
+</html>
