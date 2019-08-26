@@ -88,7 +88,7 @@ if __name__ == '__main__':
             j = which_header[i]
             axrr[i].plot(data[j][:, 0] / 1000, data[j][:, which[i]])
             axrr[i].set_ylim(0, 1.05 * data[j][:, which[i]].max())
-           
+
             start, end = axrr[i].get_ylim()
             # axrr[i].yaxis.set_ticks(np.arange(start, end, (end-start)/3.))
             if args.labels:
@@ -99,15 +99,19 @@ if __name__ == '__main__':
             if 'PKAc' in specie and specie not in forb_list:
                 pkac[j] += data[j][:, which[i]]
             if args.logscale and specie == 'Ca':
-              axrr[i].set_yscale('log')
-              axrr[i].set_ylim(10,1.05*data[j][:,which[i]].max())
+                axrr[i].set_yscale('log')
+                axrr[i].set_ylim(10, 1.05 * data[j][:, which[i]].max())
             if specie in PP_list:
                 pp2b[j] += data[j][:, which[i]]
         axrr[how_many - 1].set_xlabel('time [s]')
         axrr[0].set_title(specie + ' ' + args.units)
 
+<<<<<<< HEAD
         f.savefig(output  + specie + '.png', format='png')
         plt.close(f)
+=======
+        f.savefig(output + specie + '.png', format='png')
+>>>>>>> zs/master
 
     how_many = len(fname)
     which_header = range(how_many)
@@ -119,7 +123,7 @@ if __name__ == '__main__':
         j = which_header[i]
         axrr[i].plot(data[j][:, 0] / 1000, pkac[j])
         axrr[i].set_ylim(0, 1.05 * pkac[j].max())
-        
+
         start, end = axrr[i].get_ylim()
         # axrr[i].yaxis.set_ticks(np.arange(start, end, (end-start)/3.))
         if args.labels:
@@ -127,7 +131,7 @@ if __name__ == '__main__':
         else:
             where = fname[j].split('_')[-1]
             axrr[i].set_ylabel(where)
-       
+
     axrr[how_many - 1].set_xlabel('time [s]')
     axrr[0].set_title('Total PKAc ' + args.units)
     f.savefig(output + 'total_PKAc.png', format='png')

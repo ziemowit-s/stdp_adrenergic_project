@@ -27,12 +27,16 @@ def read_in_file(fname):
 
 if __name__ == "__main__":
     dir_names = glob.glob("?raham*")
-
+    j = 0
     for dir_name in dir_names:
         if "zip" in dir_name:
             continue
 
         fnames = glob.glob("%s/*csv" % dir_name)
+<<<<<<< HEAD
+=======
+        
+>>>>>>> zs/master
         for filename in fnames:
             if "neck" in filename:
                 continue
@@ -48,6 +52,11 @@ if __name__ == "__main__":
                     ax.plot(time, column, label=head[i])
                     ax.set_title(filename.split('/')[1])
                     lims = ax.get_xlim()
+<<<<<<< HEAD
+=======
+            print(filename, j)
+            j = j + 1
+>>>>>>> zs/master
 
             ax.legend()
     plt.show()

@@ -54,12 +54,23 @@ def get_component_importance(nmf, header, merge_components=None, agregation='max
     return probas
 
 
-def filter_time(data, num_steps, step_len, time_start):
+def filter_trials_by_time(data, num_steps, step_len, time_start):
     step_start = round(time_start/step_len)
-    if num_steps:
-        return data[step_start:step_start+num_steps]
-    else:
-        return data[step_start:]
+    result = []
+    for d in data:
+        if num_steps:
+            d = d[step_start:step_start+num_steps]
+        else:
+            d = d[step_start:]
+        if len(d) > 0:
+            result.append(d)
+    del data
+
+    lens = [len(r) for r in result]
+    med = np.median(lens)
+
+    data = [r for r in result if len(r) == med]
+    return np.array(data)
 
 
 def plot(name, molecules, data, header, norm=False, sum_many_cols=True):
@@ -196,7 +207,7 @@ if __name__ == '__main__':
     ap.add_argument("--num_steps", type=int)
     ap.add_argument("--step_len", type=int, help="in ms")
 
-    ap.add_argument("--molecule_num", type=int)
+    ap.add_argument("--molecules", nargs='+')
     ap.add_argument("--filter", type=float, default=None)
     ap.add_argument("--morphology", required=True)
     ap.add_argument("--component_number", required=True, type=int)
@@ -207,24 +218,20 @@ if __name__ == '__main__':
     # Prepare data
     all_probas = []
     all_paradigm_names = []
-    for paradigm, time_start in list(zip(args.prefix, args.time_start))[:2]:
+    for paradigm, time_start in list(zip(args.prefix, args.time_start)):
         print(paradigm)
-        data, header, paradigm_name = get_data(prefix=paradigm, trials=args.trials,
-                                               morpho=args.morphology, molecule_num=args.molecule_num)
-        data = agregate_trails(data, agregation=args.agregation)
-        data, header = exclude(data, header,
-                               exact=['time', 'Ca', 'Leak'] + S845_merge.split(' '),
-                               wildcard=['out', 'buf'])
+        data, paradigm_name = get_data(prefix=paradigm, trials=args.trials, morpho=args.morphology, molecules=args.molecules)
+        data = filter_trials_by_time(data, num_steps=args.num_steps, step_len=args.step_len, time_start=time_start)
 
-        data = filter_time(data, num_steps=args.num_steps, step_len=args.step_len, time_start=time_start)
+        data = agregate_trails(data, agregation=args.agregation)
+        data, header = exclude(data, header=args.molecules, exact=['time', 'Ca', 'Leak'] + S845_merge.split(' '), wildcard=['out', 'buf'])
 
         nmf_f, nmf_c, explained_variance = nmf(data, args.component_number, plot=False)
         #plt.figure(1)
         #plot("CKp_merge", molecules=CKp_merge, data=data, header=header, norm=True)
         #plt.legend(loc='best')
 
-        probas = get_component_importance(nmf_f, header,
-                                          merge_components=[Ip35_merge, CKp_merge, pPDE4_merge, PKAc_merge, pbAR_merge])
+        probas = get_component_importance(nmf_f, header, merge_components=[Ip35_merge, CKp_merge, pPDE4_merge, PKAc_merge, pbAR_merge])
         all_probas.append(probas)
 
         all_paradigm_names.append(paradigm_name)

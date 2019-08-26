@@ -16,6 +16,7 @@ def read_in_species(species):
     for specie in old_species:
         new_species.append(specie.strip())
     return new_species
+<<<<<<< HEAD
 
 def get_basal(filename):
     region = filename.split("_")[-1].split(".")[0]
@@ -29,6 +30,8 @@ def get_basal(filename):
     return data, header
 
 
+=======
+>>>>>>> zs/master
 
 if __name__ == '__main__':
     args = parser.parse_args()
@@ -38,6 +41,10 @@ if __name__ == '__main__':
     fig = plt.figure()
     ax = fig.add_subplot(1, 1, 1)
     basal = []
+<<<<<<< HEAD
+=======
+    basal_fnames = glob.glob("model_start_trial*txt")
+>>>>>>> zs/master
     for fname in args.files:
         print(fname)
         try:
@@ -46,10 +53,16 @@ if __name__ == '__main__':
             print("Could not find %s" % fname)
         header = f.readline().split()
         temp_data = np.loadtxt(f)
+<<<<<<< HEAD
         basal_header, basal_data = get_basal(filename)
         times.append(temp_data[:, header.index('time')])
         data.append(temp_data[:, header.index(specie_name)])
         basal.append(basal_data[:, basal_header.index(specie_name)])
+=======
+        times.append(temp_data[:, header.index('time')])
+        data.append(temp_data[:, header.index(specie_name)])
+
+>>>>>>> zs/master
 
 
     data_len = max([len(d) for d in data])

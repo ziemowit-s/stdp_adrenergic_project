@@ -89,6 +89,7 @@ def read_in_data(filename, e_species):#basal_fname="../model_start_trial"):
     for j, ending in enumerate(endings):
         pattern = "%s?_%s" % (filename, ending)
         fnames = glob.glob(pattern)
+        print(fnames)
         all_data = []
         for z, fname in enumerate(fnames):
             f = open(fname)
@@ -138,6 +139,7 @@ if __name__ == "__main__":
             l = average_traces.shape[0]
             for k, spec in enumerate(evaluated_species+receptors):
                 trace = average_traces[:, k+1]
+<<<<<<< HEAD
                 
                 if ending != "PSD.txt":
                     if spec in evaluated_species:
@@ -153,6 +155,25 @@ if __name__ == "__main__":
                         
                         if new_k == 0:
                             ax2[new_k//2][new_k%2].plot(average_traces[:, 0], trace/basal_specie[spec],
+=======
+                if basal[ending][:, k+1].mean():
+                    trace = trace/basal[ending][:, k+1].mean()
+                # if evaluated_species[k] == "PP1":
+                #     trace = average_traces[:, 1] / trace
+                if spec in evaluated_species:
+                    if k == 0 and j == 0:
+                        ax1[j][k].plot(average_traces[:, 0], trace,
+                                       color=colors[key], label=labels[key])
+                    else:
+                        ax1[j][k].plot(average_traces[:, 0], trace,
+                                       color=colors[key])
+                elif spec in receptors and ending=="spine.txt":
+                    if spec == "S567":
+                        trace = trace/average_traces[:, k]
+                    new_k = k - len(evaluated_species)
+                    if new_k == 0:
+                        ax2[new_k//2][new_k%2].plot(average_traces[:, 0], trace,
+>>>>>>> zs/master
                                                     color=colors[key], label=labels[key])
                         else:
                             ax2[new_k//2][new_k%2].plot(average_traces[:, 0], trace/basal_specie[spec],
