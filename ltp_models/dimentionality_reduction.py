@@ -19,8 +19,17 @@ PKAc_merge = 'PKAcISObAR PKAcpISObAR PKAcppISObAR PKAcpppISObAR PKAcbAR PKAcpbAR
 S845_merge = 'GluR1_S845 GluR1_S831 GluR1_S845_S831 GluR1_S845_S567 GluR1_S845_CKCaM GluR1_S845_CKpCaM GluR1_S845_CKp GluR1_S845_CKCaM2 GluR1_S845_CKpCaM2 GluR1_S845_CKp2 GluR1_S831_PKAc GluR1_S845_PP1 GluR1_S845_S831_PP1 GluR1_S845_S567_PP1 GluR1_S845_S831_PP1_2 GluR1_S845_S567_PP1_2 GluR1_S831_PP1 GluR1_S845_PP2B GluR1_S845_S831_PP2B GluR1_S845_S567_PP2B'
 
 
-def get_component_importance(nmf, header, merge_components=None):
-    probas = nmf.components_.T / np.sum(nmf.components_, axis=1) * 100
+def get_component_importance(nmf, header, merge_components=None, agregation='max'):
+    """
+
+    :param nmf:
+    :param header:
+    :param merge_components:
+    :param agregation:
+        max or avg
+    :return:
+    """
+    probas = nmf.components_.T / np.sum(nmf.components_, axis=1)
     all_compounds = np.zeros(probas.shape[1])
     if merge_components:
         for molecules in merge_components:
@@ -34,9 +43,23 @@ def get_component_importance(nmf, header, merge_components=None):
             compound_name = "%s_merged" % molecules[np.argmin([len(m) for m in molecules])]
             header.append(compound_name)
 
-    probas = np.average(probas, axis=1)
+    if agregation == 'avg':
+        probas = np.average(probas, axis=1)
+    elif agregation == 'max':
+        probas = np.max(probas, axis=1)
+
+    probas = probas/np.sum(probas, axis=0)
+    probas = probas / np.sum(probas)
     print('All Compounds explanation by component:', all_compounds)
     return probas
+
+
+def filter_time(data, num_steps, step_len, time_start):
+    step_start = round(time_start/step_len)
+    if num_steps:
+        return data[step_start:step_start+num_steps]
+    else:
+        return data[step_start:]
 
 
 def plot(name, molecules, data, header, norm=False, sum_many_cols=True):
@@ -147,13 +170,17 @@ def plot_probas_hitmap(values, names, header):
     cax = ax.matshow(values, cmap=plt.cm.Blues)
     fig.colorbar(cax)
     ax.set_xticks(np.arange(len(header)))
-    ax.set_xticklabels([''] + header, rotation=90)
+    ax.set_xticklabels(header, rotation=90)
     ax.set_yticklabels([''] + names)
     ax.set_aspect('auto')
 
+    # show_grid
+    plt.gca().set_xticks([x - 0.5 for x in plt.gca().get_xticks()][1:], minor='true')
+    plt.gca().set_yticks([y - 0.5 for y in plt.gca().get_yticks()][1:], minor='true')
+    plt.grid(linestyle='-', linewidth='0.5', color='black', which='minor')
+
 
 def filter_if_all_cols(lower_than: float, values, header):
-    values = np.array(values)
     idx = np.argwhere(np.sum(values > lower_than, axis=0) == 0)
 
     values = np.delete(values, idx, axis=1)
@@ -164,7 +191,11 @@ def filter_if_all_cols(lower_than: float, values, header):
 if __name__ == '__main__':
     ap = argparse.ArgumentParser()
     ap.add_argument("--prefix", nargs='+', required=True)
-    ap.add_argument("--time", nargs='+', required=True)
+
+    ap.add_argument("--time_start", nargs='+', required=True, type=int, help="in ms")
+    ap.add_argument("--num_steps", type=int)
+    ap.add_argument("--step_len", type=int, help="in ms")
+
     ap.add_argument("--molecule_num", type=int)
     ap.add_argument("--filter", type=float, default=None)
     ap.add_argument("--morphology", required=True)
@@ -176,7 +207,7 @@ if __name__ == '__main__':
     # Prepare data
     all_probas = []
     all_paradigm_names = []
-    for paradigm, time in list(zip(args.prefix, args.time))[:2]:
+    for paradigm, time_start in list(zip(args.prefix, args.time_start))[:2]:
         print(paradigm)
         data, header, paradigm_name = get_data(prefix=paradigm, trials=args.trials,
                                                morpho=args.morphology, molecule_num=args.molecule_num)
@@ -185,22 +216,24 @@ if __name__ == '__main__':
                                exact=['time', 'Ca', 'Leak'] + S845_merge.split(' '),
                                wildcard=['out', 'buf'])
 
-        time = time.split(':')
-        data = data[int(time[0]):int(time[1])]
+        data = filter_time(data, num_steps=args.num_steps, step_len=args.step_len, time_start=time_start)
 
         nmf_f, nmf_c, explained_variance = nmf(data, args.component_number, plot=False)
         #plt.figure(1)
         #plot("CKp_merge", molecules=CKp_merge, data=data, header=header, norm=True)
         #plt.legend(loc='best')
 
-        probas = get_component_importance(nmf_f, header, merge_components=[Ip35_merge, CKp_merge, pPDE4_merge, PKAc_merge, pbAR_merge])
+        probas = get_component_importance(nmf_f, header,
+                                          merge_components=[Ip35_merge, CKp_merge, pPDE4_merge, PKAc_merge, pbAR_merge])
         all_probas.append(probas)
 
         all_paradigm_names.append(paradigm_name)
         print('NMF Explained Variance:', explained_variance)
 
+    all_probas = np.array(all_probas) * 100
     if args.filter:
         all_probas, header = filter_if_all_cols(lower_than=args.filter, values=all_probas, header=header)
     plot_probas_chart(values=all_probas, names=all_paradigm_names, header=header)
     plot_probas_hitmap(values=all_probas, names=all_paradigm_names, header=header)
+
     plt.show()
