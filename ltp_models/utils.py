@@ -2,7 +2,7 @@ import os
 import numpy as np
 
 
-def get_data(prefix, morpho, trials=None):
+def get_data(prefix, morpho, trials=None, molecule_num=None):
     """
     Trial order is not guaranted
     :param prefix:
@@ -25,6 +25,9 @@ def get_data(prefix, morpho, trials=None):
                 continue
             path = os.path.join(folder, file) if folder is not None else file
             d = np.loadtxt(path, skiprows=1)
+            print(d.shape[1])
+            if molecule_num is not None and d.shape[1] != molecule_num:
+                continue
             with open(path) as f:
                 header = f.readline().split()
             data.append(d)
