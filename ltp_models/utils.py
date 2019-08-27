@@ -52,7 +52,7 @@ def get_data(prefix, morpho, trials=None, molecules=None):
             with open(path) as f:
                 header = f.readline().split()
                 header_len = len(header)
-                print(len(header), 'molecules in trial')
+                print('molecules:', len(header))
 
             # filter out trials with less molecules then specified (if molecules specified)
             if molecule_num is not None and header_len < molecule_num:
@@ -61,6 +61,7 @@ def get_data(prefix, morpho, trials=None, molecules=None):
 
             # get data
             d = np.loadtxt(path, skiprows=1)
+            print('steps:', d.shape[0])
 
             # data integrity
             if molecules:
@@ -115,19 +116,12 @@ def filter_by_time(data, num_steps, step_len, time_start):
 
     result = []
     for d in data:
-        if num_steps:
-            d = d[step_start:step_start+num_steps]
-        else:
-            d = d[step_start:]
-        if len(d) > 0:
-            result.append(d)
-    del data
-
-    lens = [len(r) for r in result]
-    med = np.median(lens)
-
-    data = [r for r in result if len(r) == med]
-    return np.array(data)
+        d = d[step_start:step_start+num_steps]
+        if len(d) < num_steps:
+            print("Steps: %s < %s. Trial skipped." % (len(d), num_steps))
+            continue
+        result.append(d[step_start:step_start+num_steps])
+    return np.array(result)
 
 
 def exclude_molecules(data, header, exact=None, wildcard=None):
