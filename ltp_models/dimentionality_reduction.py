@@ -1,15 +1,13 @@
 import argparse
 import numpy as np
 
-import matplotlib
-matplotlib.use('TkAgg')
-
 import matplotlib.pyplot as plt
-
 from sklearn.decomposition import NMF
 from sklearn.metrics import explained_variance_score
 from sklearn.preprocessing import MinMaxScaler
-from ltp_models.utils import get_data
+
+from ltp_models.utils import get_data, filter_by_time, exclude_molecules, agregate_trails, filter_if_all_cols, \
+    plot_chart, plot_hitmap
 
 CKp_merge = "CKp CKpCaMCa4"
 pPDE4_merge = 'pPDE4 pPDE4cAMP'
@@ -21,10 +19,11 @@ S845_merge = 'GluR1_S845 GluR1_S831 GluR1_S845_S831 GluR1_S845_S567 GluR1_S845_C
 
 def get_component_importance(nmf, header, merge_components=None, agregation='max'):
     """
-
+    Compute importance of each column for each component in NMF. Then agregates results by max or avg.
     :param nmf:
     :param header:
     :param merge_components:
+        list or (lists or str separated by spaces) which express molecules to merge.
     :param agregation:
         max or avg
     :return:
@@ -48,37 +47,24 @@ def get_component_importance(nmf, header, merge_components=None, agregation='max
     elif agregation == 'max':
         probas = np.max(probas, axis=1)
 
-    probas = probas/np.sum(probas, axis=0)
+    probas = probas / np.sum(probas, axis=0)
     probas = probas / np.sum(probas)
     print('All Compounds explanation by component:', all_compounds)
     return probas
 
 
-def filter_trials_by_time(data, num_steps, step_len, time_start):
-    step_start = round(time_start/step_len)
-    result = []
-    for d in data:
-        if num_steps:
-            d = d[step_start:step_start+num_steps]
-        else:
-            d = d[step_start:]
-        if len(d) > 0:
-            result.append(d)
-    del data
-
-    lens = [len(r) for r in result]
-    med = np.median(lens)
-
-    data = [r for r in result if len(r) == med]
-    return np.array(data)
-
-
-def plot(name, molecules, data, header, norm=False, sum_many_cols=True):
-    c = get_concentration(data, header, molecules=molecules, norm=norm, sum_many_cols=sum_many_cols)
-    plt.plot(c, label=name)
-
-
-def nmf(data, n_components, norm=True, plot=True):
+def nmf(data, n_components, norm=True, plot=False):
+    """
+    Computes Non-Negative Matrix Factorization.
+    :param data:
+    :param n_components:
+        Number of components.
+    :param norm:
+        If normalize by MinMaxScaler returned components
+    :param plot:
+        If plot. Default False.
+    :return:
+    """
     if norm:
         data = MinMaxScaler().fit_transform(data)
 
@@ -98,107 +84,6 @@ def nmf(data, n_components, norm=True, plot=True):
     return nmf, c, explained_variance
 
 
-def exclude(data, header, exact=None, wildcard=None):
-    """
-    :param data:
-    :param header:
-    :param exact:
-        to exclude by exact name
-    :param wildcard:
-        to exclude by name which contains
-    :return:
-        tuple(data, header) after removal
-    """
-    if exact is None:
-        exact = []
-    if wildcard is None:
-        wildcard = []
-
-    if isinstance(exact, str):
-        exact = exact.split(' ')
-    if isinstance(wildcard, str):
-        wildcard = wildcard.split(' ')
-
-    to_exclude = exact
-    for w in wildcard:
-        to_exclude.extend([h for h in header if w in h.lower()])
-
-    idxs = []
-    for m in to_exclude:
-        try:
-            idxs.append(header.index(m))
-        except ValueError:
-            continue
-
-    data = np.delete(data, idxs, axis=1)
-    header = np.delete(header, idxs).tolist()
-
-    return data, header
-
-
-def get_concentration(data, header, molecules, norm=False, sum_many_cols=False):
-    if isinstance(molecules, str):
-        molecules = molecules.split(' ')
-
-    v = np.array([data[:, header.index(m)] for m in molecules]).T
-
-    if sum_many_cols:
-        v = np.array([np.sum(v, axis=1)]).T
-    if norm:
-        v = MinMaxScaler().fit_transform(v)
-    if v.shape[0] == 1:
-        v = v[0]
-    return v
-
-
-def agregate_trails(data, agregation):
-    """
-    :param data:
-    :param agregation:
-        avg or concat
-    :return:
-    """
-    if agregation == "concat":
-        data = data.reshape(data.shape[0]*data.shape[1], data.shape[2])
-    elif agregation == "avg":
-        data = np.average(data, axis=0)
-    else:
-        raise NameError("Allowed trial agregation are: 'avg', 'concat'.")
-
-    return data
-
-
-def plot_probas_chart(values, names, header):
-    x = np.arange(len(header))
-    plt.xticks(x, header, rotation=90)
-    for name, probas in zip(names, values):
-        plt.plot(x, probas, label=name)
-    plt.legend(loc='best')
-
-
-def plot_probas_hitmap(values, names, header):
-    fig, ax = plt.subplots()
-    cax = ax.matshow(values, cmap=plt.cm.Blues)
-    fig.colorbar(cax)
-    ax.set_xticks(np.arange(len(header)))
-    ax.set_xticklabels(header, rotation=90)
-    ax.set_yticklabels([''] + names)
-    ax.set_aspect('auto')
-
-    # show_grid
-    plt.gca().set_xticks([x - 0.5 for x in plt.gca().get_xticks()][1:], minor='true')
-    plt.gca().set_yticks([y - 0.5 for y in plt.gca().get_yticks()][1:], minor='true')
-    plt.grid(linestyle='-', linewidth='0.5', color='black', which='minor')
-
-
-def filter_if_all_cols(lower_than: float, values, header):
-    idx = np.argwhere(np.sum(values > lower_than, axis=0) == 0)
-
-    values = np.delete(values, idx, axis=1)
-    header = np.delete(header, idx).tolist()
-    return values, header
-
-
 if __name__ == '__main__':
     ap = argparse.ArgumentParser()
     ap.add_argument("--prefix", nargs='+', required=True)
@@ -207,11 +92,14 @@ if __name__ == '__main__':
     ap.add_argument("--num_steps", type=int)
     ap.add_argument("--step_len", type=int, help="in ms")
 
-    ap.add_argument("--molecules", nargs='+')
+    ap.add_argument("--molecules", nargs='+', help="if defined - only those molecules will be extracted from trails")
+    ap.add_argument("--labels", nargs='+', help="for each prefix - name of its labels (for regression model only")
+
     ap.add_argument("--filter", type=float, default=None)
     ap.add_argument("--morphology", required=True)
     ap.add_argument("--component_number", required=True, type=int)
-    ap.add_argument("--trials", nargs='+', help="Trial numbers if required. Default: take all trials", default=None, type=int)
+    ap.add_argument("--trials", nargs='+', help="Trial numbers if required. Default: take all trials", default=None,
+                    type=int)
     ap.add_argument("--agregation", help="Many trial agregation type: avg, concat. Default: concat", default='concat')
     args = ap.parse_args()
 
@@ -220,27 +108,28 @@ if __name__ == '__main__':
     all_paradigm_names = []
     for paradigm, time_start in list(zip(args.prefix, args.time_start)):
         print(paradigm)
-        data, paradigm_name = get_data(prefix=paradigm, trials=args.trials, morpho=args.morphology, molecules=args.molecules)
-        data = filter_trials_by_time(data, num_steps=args.num_steps, step_len=args.step_len, time_start=time_start)
-
+        # Get data
+        data, paradigm_name = get_data(prefix=paradigm, trials=args.trials, morpho=args.morphology,
+                                       molecules=args.molecules)
+        data = filter_by_time(data, num_steps=args.num_steps, step_len=args.step_len, time_start=time_start)
         data = agregate_trails(data, agregation=args.agregation)
-        data, header = exclude(data, header=args.molecules, exact=['time', 'Ca', 'Leak'] + S845_merge.split(' '), wildcard=['out', 'buf'])
+        data, header = exclude_molecules(data, header=args.molecules,
+                                         exact=['time', 'Ca', 'Leak'] + S845_merge.split(' '), wildcard=['out', 'buf'])
 
+        # Dim reduction
         nmf_f, nmf_c, explained_variance = nmf(data, args.component_number, plot=False)
-        #plt.figure(1)
-        #plot("CKp_merge", molecules=CKp_merge, data=data, header=header, norm=True)
-        #plt.legend(loc='best')
+        # Get probability importabce by molecule
+        probas = get_component_importance(nmf_f, header,
+                                          merge_components=[Ip35_merge, CKp_merge, pPDE4_merge, PKAc_merge, pbAR_merge])
 
-        probas = get_component_importance(nmf_f, header, merge_components=[Ip35_merge, CKp_merge, pPDE4_merge, PKAc_merge, pbAR_merge])
         all_probas.append(probas)
-
         all_paradigm_names.append(paradigm_name)
         print('NMF Explained Variance:', explained_variance)
 
     all_probas = np.array(all_probas) * 100
     if args.filter:
         all_probas, header = filter_if_all_cols(lower_than=args.filter, values=all_probas, header=header)
-    plot_probas_chart(values=all_probas, names=all_paradigm_names, header=header)
-    plot_probas_hitmap(values=all_probas, names=all_paradigm_names, header=header)
+    plot_chart(values=all_probas, labels=all_paradigm_names, x_names=header)
+    plot_hitmap(values=all_probas, y_names=all_paradigm_names, x_names=header)
 
     plt.show()
