@@ -128,8 +128,8 @@ if __name__ == '__main__':
 
     all_probas = np.array(all_probas) * 100
     if args.filter:
-        all_probas, header = filter_if_all_cols(lower_than=args.filter, values=all_probas, header=header)
-    plot_chart(values=all_probas, labels=all_paradigm_names, x_names=header)
-    plot_hitmap(values=all_probas, y_names=all_paradigm_names, x_names=header)
+        all_probas, header = filter_if_all_cols(lower_than=args.filter, data=all_probas, header=header)
+    plot_chart(data=all_probas, labels=all_paradigm_names, x_names=header)
+    plot_hitmap(data=all_probas, y_names=all_paradigm_names, x_names=header)
 
     plt.show()
