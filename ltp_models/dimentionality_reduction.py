@@ -1,4 +1,6 @@
 import argparse
+import pickle
+
 import numpy as np
 
 import matplotlib.pyplot as plt
@@ -17,13 +19,13 @@ PKAc_merge = 'PKAcISObAR PKAcpISObAR PKAcppISObAR PKAcpppISObAR PKAcbAR PKAcpbAR
 S845_merge = 'GluR1_S845 GluR1_S831 GluR1_S845_S831 GluR1_S845_S567 GluR1_S845_CKCaM GluR1_S845_CKpCaM GluR1_S845_CKp GluR1_S845_CKCaM2 GluR1_S845_CKpCaM2 GluR1_S845_CKp2 GluR1_S831_PKAc GluR1_S845_PP1 GluR1_S845_S831_PP1 GluR1_S845_S567_PP1 GluR1_S845_S831_PP1_2 GluR1_S845_S567_PP1_2 GluR1_S831_PP1 GluR1_S845_PP2B GluR1_S845_S831_PP2B GluR1_S845_S567_PP2B'
 
 
-def get_component_importance(nmf, header, merge_components=None, agregation='max'):
+def get_component_importance(nmf, header, merge_components=None, agregation='max', merge_name_sufix="MERGED"):
     """
     Compute importance of each column for each component in NMF. Then agregates results by max or avg.
     :param nmf:
     :param header:
     :param merge_components:
-        list or (lists or str separated by spaces) which express molecules to merge.
+        lists or str separated by spaces which express molecules to merge.
     :param agregation:
         max or avg
     :return:
@@ -34,12 +36,14 @@ def get_component_importance(nmf, header, merge_components=None, agregation='max
         for molecules in merge_components:
             if isinstance(molecules, str):
                 molecules = molecules.split(' ')
+            molecules = [m.lower() for m in molecules]
             compound = np.array([probas[header.index(m), :] for m in molecules])
             compound = np.sum(compound, axis=0)
             all_compounds += compound
             probas = np.concatenate([probas, compound.reshape(1, compound.shape[0])], axis=0)
 
-            compound_name = "%s_merged" % molecules[np.argmin([len(m) for m in molecules])]
+            shortest_name = molecules[np.argmin([len(m) for m in molecules])]
+            compound_name = "%s_%s" % (shortest_name, merge_name_sufix)
             header.append(compound_name)
 
     if agregation == 'avg':
@@ -86,44 +90,36 @@ def nmf(data, n_components, norm=True, plot=False):
 
 if __name__ == '__main__':
     ap = argparse.ArgumentParser()
-    ap.add_argument("--prefix", nargs='+', required=True)
+    ap.add_argument("--pickle", required=True)
 
-    ap.add_argument("--time_start", nargs='+', required=True, type=int, help="in ms")
-    ap.add_argument("--num_steps", type=int)
-    ap.add_argument("--step_len", type=int, help="in ms")
-
-    ap.add_argument("--molecules", nargs='+', help="if defined - only those molecules will be extracted from trails")
-    ap.add_argument("--labels", nargs='+', help="for each prefix - name of its labels (for regression model only")
-
-    ap.add_argument("--filter", type=float, default=None)
-    ap.add_argument("--morphology", required=True)
+    ap.add_argument("--filter", type=float, default=0,
+                    help="Filter out molecules from component_importance plot if their value for all paradigms is"
+                         " lower than this filter. It is a probability distribution between 0-100. ")
     ap.add_argument("--component_number", required=True, type=int)
     ap.add_argument("--trials", nargs='+', help="Trial numbers if required. Default: take all trials", default=None,
                     type=int)
-    ap.add_argument("--agregation", help="Many trial agregation type: avg, concat. Default: concat", default='concat')
+    ap.add_argument("--trial_agregation", help="Many trial agregation type: avg, concat. Default: concat", default='avg')
+    ap.add_argument("--component_agregation", help="Agregate protein importance by component: avg, max", default='max')
     args = ap.parse_args()
+
+    with open(args.pickle, "rb") as f:
+        dataset = pickle.load(f)
 
     # Prepare data
     all_probas = []
     all_paradigm_names = []
-    for paradigm, time_start in list(zip(args.prefix, args.time_start)):
-        print(paradigm)
-        # Get data
-        data, paradigm_name = get_data(prefix=paradigm, trials=args.trials, morpho=args.morphology,
-                                       molecules=args.molecules)
-        data = filter_by_time(data, num_steps=args.num_steps, step_len=args.step_len, time_start=time_start)
-        data = agregate_trails(data, agregation=args.agregation)
-        data, header = exclude_molecules(data, header=args.molecules,
-                                         exact=['time', 'Ca', 'Leak'] + S845_merge.split(' '), wildcard=['out', 'buf'])
+    for data, header, label, paradigm_name in dataset:
+        print(paradigm_name)
+        data = agregate_trails(data, agregation=args.trial_agregation)
 
         # Dim reduction
         nmf_f, nmf_c, explained_variance = nmf(data, args.component_number, plot=False)
         # Get probability importabce by molecule
-        probas = get_component_importance(nmf_f, header,
+        probas = get_component_importance(nmf_f, header, agregation=args.component_agregation,
                                           merge_components=[Ip35_merge, CKp_merge, pPDE4_merge, PKAc_merge, pbAR_merge])
 
         all_probas.append(probas)
-        all_paradigm_names.append(paradigm_name)
+        all_paradigm_names.append("%s:%s" % (paradigm_name, label.upper()))
         print('NMF Explained Variance:', explained_variance)
 
     all_probas = np.array(all_probas) * 100

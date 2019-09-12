@@ -68,14 +68,18 @@ def get_data(prefix, morpho, trials=None, molecules=None):
                 # if molecules specified - ensure integrity of header
                 d = d.T
                 integrated_d = []
+                integrated_header = []
                 for i, m in enumerate(molecules):
                     ii = header.index(m)
+
+                    integrated_header.append(header[ii])
                     integrated_d.append(d[ii])
                 d = np.array(integrated_d).T
+                header = integrated_header
 
             data.append(d)
 
-    return np.array(data), prefix
+    return np.array(data), header, prefix
 
 
 def agregate_trails(data, agregation):
@@ -141,6 +145,10 @@ def exclude_molecules(data, header, exact=None, wildcard=None):
     if wildcard is None:
         wildcard = []
 
+    header = [h.lower() for h in header]
+    wildcard = [w.lower() for w in wildcard]
+    exact = [e.lower() for e in exact]
+
     if isinstance(exact, str):
         exact = exact.split(' ')
     if isinstance(wildcard, str):
@@ -148,7 +156,7 @@ def exclude_molecules(data, header, exact=None, wildcard=None):
 
     to_exclude = exact
     for w in wildcard:
-        to_exclude.extend([h for h in header if w in h.lower()])
+        to_exclude.extend([h for h in header if w in h])
 
     idxs = []
     for m in to_exclude:
@@ -157,7 +165,7 @@ def exclude_molecules(data, header, exact=None, wildcard=None):
         except ValueError:
             continue
 
-    data = np.delete(data, idxs, axis=1)
+    data = np.delete(data, idxs, axis=-1)
     header = np.delete(header, idxs).tolist()
 
     return data, header
@@ -194,7 +202,7 @@ def get_concentration(data, header, molecules, norm=False, sum_many_cols=False):
 
 def filter_if_all_cols(lower_than: float, data, header):
     """
-    Remove cols from data and header if all values in a column is lower_than some value.
+    Remove cols (from data and header) if all values in a column is lower_than some value.
     :param lower_than:
     :param values:
     :param header:
