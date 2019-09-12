@@ -27,7 +27,7 @@ def get_component_importance(nmf, header, merge_components=None, agregation='max
     :param merge_components:
         lists or str separated by spaces which express molecules to merge.
     :param agregation:
-        max or avg
+        max or avg. max means: get max value for each protein from any component
     :return:
     """
     probas = nmf.components_.T / np.sum(nmf.components_, axis=1)
@@ -36,8 +36,10 @@ def get_component_importance(nmf, header, merge_components=None, agregation='max
         for molecules in merge_components:
             if isinstance(molecules, str):
                 molecules = molecules.split(' ')
-            molecules = [m.lower() for m in molecules]
-            compound = np.array([probas[header.index(m), :] for m in molecules])
+            try:
+                compound = np.array([probas[header.index(m), :] for m in molecules])
+            except ValueError:
+                continue
             compound = np.sum(compound, axis=0)
             all_compounds += compound
             probas = np.concatenate([probas, compound.reshape(1, compound.shape[0])], axis=0)
@@ -48,7 +50,7 @@ def get_component_importance(nmf, header, merge_components=None, agregation='max
 
     if agregation == 'avg':
         probas = np.average(probas, axis=1)
-    elif agregation == 'max':
+    elif agregation == 'max':  # get max value for each protein from any component
         probas = np.max(probas, axis=1)
 
     probas = probas / np.sum(probas, axis=0)

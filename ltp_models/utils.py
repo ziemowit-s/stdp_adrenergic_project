@@ -145,10 +145,6 @@ def exclude_molecules(data, header, exact=None, wildcard=None):
     if wildcard is None:
         wildcard = []
 
-    header = [h.lower() for h in header]
-    wildcard = [w.lower() for w in wildcard]
-    exact = [e.lower() for e in exact]
-
     if isinstance(exact, str):
         exact = exact.split(' ')
     if isinstance(wildcard, str):
@@ -156,7 +152,7 @@ def exclude_molecules(data, header, exact=None, wildcard=None):
 
     to_exclude = exact
     for w in wildcard:
-        to_exclude.extend([h for h in header if w in h])
+        to_exclude.extend([h for h in header if w.lower() in h.lower()])
 
     idxs = []
     for m in to_exclude:

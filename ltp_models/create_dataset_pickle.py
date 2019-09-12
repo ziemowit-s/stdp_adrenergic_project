@@ -32,13 +32,15 @@ if __name__ == '__main__':
         d, header, paradigm_name = get_data(prefix=paradigm, morpho=args.morphology, molecules=args.molecules)
         d = filter_by_time(d, num_steps=args.num_steps, step_len=args.step_len, time_start=time_start)
         d, header = exclude_molecules(d, header=args.molecules, exact=['time', 'Ca', 'Leak'] + S845_merge.split(' '),
-                                      wildcard=['out', 'buf'])
+                                      wildcard=['out', 'buf', 'ISO'])
         dataset.append((d, header, label, paradigm_name))
 
     os.makedirs(CACHED, exist_ok=True)
     fname = "%s/regression_dataset_%s_%s_steps.pickle" % (CACHED, args.morphology, args.num_steps)
     with open(fname, "wb") as f:
         pickle.dump(dataset, f)
+
+    print('Pickle saved to:', fname)
 
 
 
